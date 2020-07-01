@@ -6,7 +6,7 @@ from matplotlib.patches import Ellipse
 from mpl_toolkits.mplot3d import axes3d
 from matplotlib.pylab import cm
 from numpy import sin, cos
-sys.path.append('/Users/miriamgauntlett/TEMPSEIS_Andrea/TEMPSEIS_package_v1.2/lib/seis_process')
+sys.path.insert(0, '../../lib/')
 from functions import *
 from numpy import linalg as LA
 from scipy import interpolate
