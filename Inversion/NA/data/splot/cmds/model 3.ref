@@ -1,0 +1,27 @@
+#
+# Reference model plotted by splot
+#
+  1.00	: reference value for variable 1
+  1.00	: reference value for variable 2
+  2.50	: reference value for variable 3
+ 16.00	: reference value for variable 4
+ 17.00	: reference value for variable 5
+ 20.00	: reference value for variable 6
+  2.75	: reference value for variable 7
+  2.80	: reference value for variable 8
+  2.95	: reference value for variable 9
+  3.70	: reference value for variable 10
+  3.60	: reference value for variable 11
+  4.41	: reference value for variable 12
+  2.80	: reference value for variable 13
+  2.95	: reference value for variable 14
+  3.70	: reference value for variable 15
+  3.50	: reference value for variable 16
+  4.20	: reference value for variable 17
+  4.85	: reference value for variable 18
+  2.80 	: reference value for variable 19
+  1.90 	: reference value for variable 20
+  1.70 	: reference value for variable 21
+  1.70 	: reference value for variable 22
+  1.70 	: reference value for variable 23
+  1.70 	: reference value for variable 24

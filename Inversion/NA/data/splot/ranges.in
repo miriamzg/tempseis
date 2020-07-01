@@ -1,0 +1,64 @@
+#
+# Default ranges for each variable used in splot
+#
+# Min   Max   ndec  
+  0.00  2.00   1  : variable 1
+  0.00  3.00   1  : variable 2
+  1.00 15.00   1  : variable 3
+  5.00 20.00   1  : variable 4
+  5.00 20.00   1  : variable 5
+  5.00 30.00   1  : variable 6
+  1.75  3.00   1  : variable 7
+  1.50  3.50   1  : variable 8
+  2.60  3.60   1  : variable 9
+  3.20  4.50   1  : variable 10
+  3.20  4.50   1  : variable 11
+  4.00  5.00   1  : variable 12
+  1.75  3.00   1  : variable 13
+  1.50  3.50   1  : variable 14
+  2.80  4.00   1  : variable 15
+  3.20  4.50   1  : variable 16
+  3.20  4.50   1  : variable 17
+  4.00  5.00   1  : variable 18
+  2.00  3.00   1  : variable 19
+  1.65  2.00   1  : variable 20
+  1.65  1.80   2  : variable 21
+  1.65  1.80   2  : variable 22
+  1.65  1.80   2  : variable 23
+  1.70  1.90   1  : variable 24
+#
+# Additional frame parameters for each variable 
+# (Note: only read in and used if frame type = 2, in command file)
+#
+#  df  nsub  str
+  0.5   5   :H layer 1: 
+  0.5   5   :H layer 2: 
+  5.0   5   :H layer 3: 
+  5.0   5   :H layer 4: 
+  5.0   5   :H layer 5: 
+  5.0   5   :H layer 6: 
+  0.2   2   :Vs1 layer 1: 
+  0.2   2   :Vs1 layer 2: 
+  0.2   2   :Vs1 layer 3: 
+  0.2   2   :Vs1 layer 4: 
+  0.2   2   :Vs1 layer 5: 
+  0.2   2   :Vs1 layer 6: 
+  0.2   2   :Vs2 layer 1: 
+  0.4   2   :Vs2 layer 2: 
+  0.2   2   :Vs2 layer 3: 
+  0.2   2   :Vs2 layer 4: 
+  0.2   2   :Vs2 layer 5: 
+  0.2   2   :Vs2 layer 6: 
+  0.2   2   :Vp/Vs layer 1: 
+  0.1   2   :Vp/Vs layer 2: 
+  0.02  2   :Vp/Vs layer 3: 
+  0.02  2   :Vp/Vs layer 4: 
+  0.02  2   :Vp/Vs layer 5: 
+  0.02  2   :Vp/Vs layer 6: 
+#
+# meaning of each parameter
+#
+#  df	: step in function values between two large tics
+#  nsub : number of subdivisions with small tics between any two large tics
+#  ndec : number of decimals in large tic labels (set -1 for integer)
+#  str  : axis label character string 

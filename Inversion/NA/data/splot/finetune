@@ -1,0 +1,29 @@
+#
+#	File finetune for splot figure
+#
+#  These values are used to fine tune the position of the
+#  axes annotation in a postscript figure produced by splot.
+#  (Because the automatic positioning is not perfect!)
+#
+#  One line per panel in postscript plot 
+#
+#  In splot the panels are numbered reading from 
+#  top left to bottom right.
+#
+#  postive displacements are to the right (x) and up (y).
+#  negative displacements are to the left (x) and down (y).
+#
+#    Definition of parameters:
+#
+#       x-displacement of y-axis numbers = -a
+#       x-displacement of y-axis title   = -(a+b)
+#       y-displacement of x-axis numbers = -c
+#       y-displacement of x-axis title   = -(c+d)
+#
+#     a     b    c   d
+    -0.1   0.0  0.0 0.0
+    -0.2   0.2  0.0 0.0
+    -0.15  0.2  0.0 0.0
+    -0.2   0.2  0.0 0.0
+    -0.1   0.1  0.0 0.0
+    -0.1   0.1  0.0 0.0
