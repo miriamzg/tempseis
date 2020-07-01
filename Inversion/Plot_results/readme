@@ -1,6 +1,6 @@
 Plotting scripts to produce figures.
 
-plot_results.py
+plot_results_subplot.py
 > evolution of source parameters during the inversion
 > histograms for the values of each parameter tested 
 
