@@ -1,0 +1,19 @@
+Plotting scripts to produce figures.
+
+plot_results.py
+> evolution of source parameters during the inversion
+> histograms for the values of each parameter tested 
+
+plot_correlations.py
+> correlation between different parameters
+
+plot_station_map_body_surface.py
+> map of seismic station distribution for the stations used in the inversion
+> azimuthal coverage from the stations
+> misfit map
+
+plot_seismograms2.py
+> plots p, s, w windows (showing data, point-source synthetics, synthetics from best-fitting extended source model)
+
+plot_fault_results.py
+> comparison of fault dimensions with finite fault results  
