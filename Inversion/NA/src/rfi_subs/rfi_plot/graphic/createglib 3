@@ -1,0 +1,11 @@
+#!/usr/bin/csh -f
+# This is a C-shell script to make 'glib.a'.
+#
+if ( -e glib.a ) then
+  rm glib.a
+endif
+/opt/SUNWspro/bin/f77 -O4 -c *.f
+ar q glib.a *.o
+ranlib glib.a
+rm *.o
+
