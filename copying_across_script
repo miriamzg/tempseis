@@ -1,0 +1,28 @@
+#!/bin/bash
+
+source activate MASTERS_WORKING
+
+export file="CMTSOLUTION_2007053002022A_GCMT"
+export filtering="fortran_format_18_40_18_60_45_100"
+export duration="45"
+export strike1="7"
+export dip1="273"
+export strike2="86"
+export dip2="72"
+
+
+################################################################################
+
+rm Inversion/NA/data/rfi_files/OBS/*
+rm Inversion/NA/src/rfi_subs/point_source/*
+rm Inversion/NA/src/rfi_subs/kernels/*
+
+cp database/$file/$filtering/point_source/* Inversion/NA/src/rfi_subs/point_source/
+cp database/$file/$filtering/observed_data/* Inversion/NA/data/rfi_files/OBS/
+
+for d  in database/$file/$filtering/derivatives/*
+do
+echo $d
+cp $d  Inversion/NA/src/rfi_subs/kernels/
+done
+
