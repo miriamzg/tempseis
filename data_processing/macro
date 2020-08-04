@@ -1,0 +1,9 @@
+ SEISMIC ANALYSIS CODE [11/11/2013 (Version 101.6a)]
+ Copyright 1995 Regents of the University of California
+
+ ERROR 1301: No data files read in.
+ ERROR 1301: No data files read in.
+ ERROR 1016: Terminating execution of macro rotate.macro
+ Command line is: rotate to $3
+SAC> 
+SAC> q
