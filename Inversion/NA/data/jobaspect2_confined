@@ -14,72 +14,12 @@ $b  100.0 0  $a    $a   0  -90.00  90.00 0    char. dimensions: Amax (km), Amin/
 $strike1.   $strike1.    0 $dip1.  $dip1.  0   0.00  0.00 0     strike, dip (degrees)
 
 *
+cd $path/TEMPSEIS_PACKAGE
+./run_inversion
 
-cat > $path/TEMPSEIS_PACKAGE/Inversion/NA/data/run_inversion.py << ~
-import os
-import sys
-
-
-event_code = "$file"
-
-inversion_code = "test7_$a"
-lat = " $lat"
-lon = " $lon"
-
-
-os.system("mkdir $path/TEMPSEIS_PACKAGE/Inversion/Results/" + event_code)
-results_folder = "$path/TEMPSEIS_PACKAGE/Inversion/Results/"     + event_code + "/" + inversion_code
-Data_folder = "$path/TEMPSEIS_PACKAGE/database/" + event_code
-
-os.system("mkdir " + results_folder)
-os.system("mkdir " + results_folder + "/observed/")
-os.system("mkdir " + results_folder + "/best_predicted/")
-
-os.chdir ("$path/TEMPSEIS_PACKAGE/Inversion/Preparation")
-os.system("cp $path/TEMPSEIS_PACKAGE/Inversion/Preparation/az_coverageTEST_P.pdf $path/TEMPSEIS_PACKAGE/Inversion/Results/"     + event_code + "/" + inversion_code)
-os.system("cp $path/TEMPSEIS_PACKAGE/Inversion/Preparation/az_coverageTEST_S.pdf $path/TEMPSEIS_PACKAGE/Inversion/Results/"     + event_code + "/" + inversion_code)
-os.system("python scalar_moment.py " + results_folder)
-
-#sys.exit()
-
-os.system( "")
-os.chdir("$path/TEMPSEIS_PACKAGE/Inversion/NA/src")
-os.system("make clean")
-os.system("make all")
-os.chdir("../data")
-os.system("../bin/rfi_na")
-
-# #sys.exit()
-
-os.system("cp rfi_files/NA_MDL/rfi_models " + results_folder)
-os.system("cp rfi_files/NA_MDL/rfi_param " + results_folder)
-os.system("cp rfi_files/rfi.in " + results_folder)
-os.system("cp na.in  " + results_folder)
-os.system("mv rfi_files/FINAL/*observed.asc " + results_folder + "/observed/")
-os.system("mv rfi_files/FINAL/*best_predicted.asc " + results_folder + "/best_predicted/")
-os.system("cp station_mft.asc " + results_folder)
-os.system("cp best_model.asc " + results_folder)
-
-#running plotting scripts 
-os.chdir ("$path/TEMPSEIS_PACKAGE/Inversion/Plot_results")
-os.system("python plot_results_subplot.py " + results_folder)
-os.system("python plot_fault_results.py " + results_folder)            # uncomment for real data test
-# os.system("python plot_fault_results_SYNT.py " + results_folder)  # uncomment for synthetic test
-os.system("python plot_correlations.py " + results_folder)
-os.system("python plot_station_map_body_surface.py " + results_folder + lat + lon)
-#os.system("python plot_observed_vs_best_predicted_body_surface.py" + results_folder)
-os.system("python plot_seismograms2.py "+ results_folder)
-
-~
-
-cd $path/TEMPSEIS_PACKAGE/Inversion/NA/data
-
-python run_inversion.py
-
-done
-
+cd -
 #looping over different aspect ratios (Amin/Amax) for the other fault plane 
-for b  in  28.86751346 14.4337567 9.62250449 7.21687836 5.77350269 4.81125205 4.12393049 3.60843918 3.207501495 2.88675135
+for b in 28.86751346 14.4337567 9.62250449 7.21687836 5.77350269 4.81125205 4.12393049 3.60843918 3.207501495 2.88675135
 do
 a=$(bc <<< "scale=3;5/($b*1.732050807568877)")
 cat > $path/TEMPSEIS_PACKAGE/Inversion/NA/data/rfi_files/NA_MDL/rfi_param << *
@@ -92,63 +32,7 @@ $b  100.0   0    $a  $a  0  -90.00  90.00 0    char. dimensions: Amax (km), Amin
 $strike2.   $strike2.    0 $dip2.  $dip2.  0   0.00  0.00 0     strike, dip (degrees)
 
 *
-
-cat > $path/TEMPSEIS_PACKAGE/Inversion/NA/data/run_inversion.py << ~
-import os
-import sys
-
-
-event_code = "$file"
-
-inversion_code = "test_$a"
-
-os.system("mkdir $path/TEMPSEIS_PACKAGE/Inversion/Results/" + event_code)
-results_folder = "$path/TEMPSEIS_PACKAGE/Inversion/Results/"     + event_code + "/" + inversion_code
-Data_folder = "$path/TEMPSEIS_PACKAGE/database/" + event_code
-
-os.system("mkdir " + results_folder)
-os.system("mkdir " + results_folder + "/observed/")
-os.system("mkdir " + results_folder + "/best_predicted/")
-
-os.chdir ("$path/TEMPSEIS_PACKAGE/Inversion/Preparation")
-os.system("cp az_coverageTEST_P.pdf" + results_folder)
-os.system("cp az_coverageTEST_S.pdf" + results_folder)
-os.system("python scalar_moment.py " + results_folder)
-
-#sys.exit()
-
-os.system( "")
-os.chdir("$path/TEMPSEIS_PACKAGE/Inversion/NA/src")
-os.system("make clean")
-os.system("make all")
-os.chdir("../data")
-os.system("../bin/rfi_na")
-
-# #sys.exit()
-
-os.system("cp rfi_files/NA_MDL/rfi_models " + results_folder)
-os.system("cp rfi_files/NA_MDL/rfi_param " + results_folder)
-os.system("cp rfi_files/rfi.in " + results_folder)
-os.system("cp na.in  " + results_folder)
-os.system("mv rfi_files/FINAL/*observed.asc " + results_folder + "/observed/")
-os.system("mv rfi_files/FINAL/*best_predicted.asc " + results_folder + "/best_predicted/")
-os.system("cp station_mft.asc " + results_folder)
-os.system("cp best_model.asc " + results_folder)
-
-#running plotting scripts 
-os.chdir ("$path/TEMPSEIS_PACKAGE/Inversion/Plot_results")
-os.system("python plot_results_subplot.py " + results_folder)
-os.system("python plot_fault_results.py " + results_folder)            # uncomment for real data test
-# os.system("python plot_fault_results_SYNT.py " + results_folder)  # uncomment for synthetic test
-os.system("python plot_correlations.py " + results_folder)
-os.system("python plot_station_map_body_surface.py " + results_folder)
-#os.system("python plot_observed_vs_best_predicted_body_surface.py " + results_folder)
-os.system("python plot_seismograms2.py "+ results_folder)
-
-~
-
-cd $path/TEMPSEIS_PACKAGE/Inversion/NA/data
-
-python run_inversion.py
+cd $path/TEMPSEIS_PACKAGE
+./run_inversion
 
 done 
