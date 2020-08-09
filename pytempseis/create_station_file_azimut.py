@@ -1,6 +1,6 @@
 import os
 import glob
-from functions import distance
+from .functions import distance
 import math
 import numpy as np
 from matplotlib import cm
@@ -27,7 +27,7 @@ def get_station_coords(station):
 
 
 def use_it_or_not(station, comp, wavetype, data2use):
-    use_it = "N"
+    use_it = False
     for i in range(0, len(data2use)):
         if (
             station == data2use[i][0]
@@ -36,7 +36,7 @@ def use_it_or_not(station, comp, wavetype, data2use):
         ):
             use_it = data2use[i][3]
             break
-    return use_it
+    return False if use_it == "N" else True
 
 
 def calculate_initial_compass_bearing(pointA, pointB):
@@ -110,7 +110,7 @@ out.write("rfi_models                             /* output models */\n")
 out.write(str(len(filelist)) + "\t\t\t/* nwave */\n")
 n = 0
 
-use_it = "N"
+use_it = False
 
 for wt in ["P", "S"]:
     print("Preparing " + wt + " waves")
@@ -121,9 +121,6 @@ for wt in ["P", "S"]:
     if wt == "S":
         dist_min = dist_min_S
         dist_max = dist_max_S
-        # if wt == "W":
-        # dist_min = dist_min_W
-    # dist_max = dist_max_W
 
     bbaz = []
     ddist = []
@@ -144,10 +141,8 @@ for wt in ["P", "S"]:
         ev = (ev_lat, ev_lon)
         baz = calculate_initial_compass_bearing(ev, st)
         use_it = use_it_or_not(station, comp, wavetype, data2use)
-        # use_it = "Y"
 
-        if wavetype == wt and use_it == "Y" and dist >= dist_min and dist <= dist_max:
-            # if station not in ss_list:
+        if wavetype == wt and use_it and dist >= dist_min and dist <= dist_max:
             ss_list.append(station)
             bbaz.append(baz)
             ddist.append(dist)
@@ -155,7 +150,6 @@ for wt in ["P", "S"]:
             fig.suptitle(wt + " waves")
             ax.set_ylim(0, 90)
             ax.set_yticks(np.arange(10, 90, 10))
-            # ax.annotate(station, xy=(math.radians(baz), dist))
             n += 1
 
     baz_bins = np.arange(0, 370, 10.0)
@@ -203,9 +197,8 @@ for wt in ["P", "S"]:
         ev = (ev_lat, ev_lon)
         baz = calculate_initial_compass_bearing(ev, st)
         use_it = use_it_or_not(station, comp, wavetype, data2use)
-        # 	use_it = "Y"
 
-        if wavetype == wt and use_it == "Y" and dist >= dist_min and dist <= dist_max:
+        if wavetype == wt and use_it and dist >= dist_min and dist <= dist_max:
             for i in range(0, len(bins) - 1):
                 baz_min = bins[i]
                 baz_max = bins[i + 1]
@@ -219,7 +212,6 @@ for wt in ["P", "S"]:
                     print(counts[i], density_sta)
                     break
 
-            # print station, comp, wavetype, dist, baz, density_sta
             c = plt.scatter(
                 math.radians(baz),
                 dist,
