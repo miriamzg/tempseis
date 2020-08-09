@@ -46,7 +46,6 @@ def calculate_initial_compass_bearing(pointA, pointB):
 
     lat1 = math.radians(pointA[0])
     lat2 = math.radians(pointB[0])
-
     diffLong = math.radians(pointB[1] - pointA[1])
 
     x = math.sin(diffLong) * math.cos(lat2)
@@ -55,7 +54,6 @@ def calculate_initial_compass_bearing(pointA, pointB):
     )
 
     initial_bearing = math.atan2(x, y)
-
     initial_bearing = math.degrees(initial_bearing)
     compass_bearing = (initial_bearing + 360) % 360
 
@@ -110,15 +108,13 @@ out.write("rfi_models                             /* output models */\n")
 out.write(str(len(filelist)) + "\t\t\t/* nwave */\n")
 n = 0
 
-use_it = False
-
 for wt in ["P", "S"]:
-    print("Preparing " + wt + " waves")
+    print(f"Preparing {wt} waves")
     bbz = []
     if wt == "P":
         dist_min = dist_min_P
         dist_max = dist_max_P
-    if wt == "S":
+    else:
         dist_min = dist_min_S
         dist_max = dist_max_S
 
@@ -147,26 +143,25 @@ for wt in ["P", "S"]:
             bbaz.append(baz)
             ddist.append(dist)
             ax.scatter(math.radians(baz), dist, marker="^", c="g", s=70, zorder=2)
-            fig.suptitle(wt + " waves")
+            fig.suptitle(f"{wt} waves")
             ax.set_ylim(0, 90)
             ax.set_yticks(np.arange(10, 90, 10))
             n += 1
 
-    baz_bins = np.arange(0, 370, 10.0)
-    counts, bins = np.histogram(bbaz, bins=baz_bins)
-
-    plt.savefig("az_coverageTEST_" + wt + ".pdf")
+    plt.savefig(f"az_coverageTEST_{wt}.pdf")
     plt.close()
 
     plt.hist(ddist, bins=100)
-    plt.savefig("dist_hist" + wt + ".png")
+    plt.savefig(f"dist_hist{wt}.png")
     plt.close()
 
+    baz_bins = np.arange(0, 370, 10.0)
+    counts, bins = np.histogram(bbaz, bins=baz_bins)
     plt.hist(bbaz, bins=baz_bins)
     for i in range(0, len(counts)):
         b = (bins[i] + bins[i + 1]) / 2.0
         plt.scatter(b, counts[i])
-    plt.savefig("baz_hist_" + wt + ".png")
+    plt.savefig(f"baz_hist_{wt}.png")
     plt.close()
 
     fig = plt.figure()
@@ -186,12 +181,14 @@ for wt in ["P", "S"]:
         if wt == "P":
             dist_min = dist_min_P
             dist_max = dist_max_P
-        if wt == "S":
+        elif wt == "S":
             dist_min = dist_min_S
             dist_max = dist_max_S
-        if wt == "W":
+        elif wt == "W":
             dist_min = dist_min_W
             dist_max = dist_max_W
+        else:
+            raise ValueError("Wrong wave type")
 
         st = (st_lat, st_lon)
         ev = (ev_lat, ev_lon)
@@ -199,7 +196,7 @@ for wt in ["P", "S"]:
         use_it = use_it_or_not(station, comp, wavetype, data2use)
 
         if wavetype == wt and use_it and dist >= dist_min and dist <= dist_max:
-            for i in range(0, len(bins) - 1):
+            for i in range(len(bins) - 1):
                 baz_min = bins[i]
                 baz_max = bins[i + 1]
 
@@ -224,14 +221,14 @@ for wt in ["P", "S"]:
                 s=40,
             )
             ax2.annotate(station, xy=(math.radians(baz), dist))
-            out.write(data_name + "\n")
+            out.write(f"{data_name}\n")
             weight = str(round(density_sta, 3))
-            out.write(weight + "\n")
+            out.write(f"{weight}\n")
     plt.ylim(0, dist_max)
 
     plt.colorbar(c)
 
-    plt.savefig("tmp_" + wt + ".png")
+    plt.savefig(f"tmp_{wt}.png")
     plt.close()
 
 out.write("1                                       /* iwrite_models */")
