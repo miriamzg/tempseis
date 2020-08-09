@@ -1,16 +1,13 @@
-import os
 import matplotlib.pylab as plt
 import numpy as np
 import sys
 from matplotlib import cm
 from operator import itemgetter
 import operator
-from matplotlib import rc
-
 
 result_folder = sys.argv[1]
-result_file = result_folder + "/rfi_models"
-scalar_moment_file = result_folder + "/scalar_moment.txt"
+result_file = f"{result_folder}/rfi_models"
+scalar_moment_file = f"{result_folder}/scalar_moment.txt"
 
 perc_treshold = 5.0
 
@@ -275,19 +272,19 @@ plt.subplot(311)
 plt.scatter(iindex, rrc_mod, color="black", s=2, linewidth=0)
 plt.xlim(min(iindex), max(iindex))
 plt.ylabel("Rc module (km)")
-plt.xlabel("\# model")
+plt.xlabel("# model")
 
 plt.subplot(312)
 plt.scatter(iindex, rrc_ang, color="black", s=2, linewidth=0)
 plt.xlim(min(iindex), max(iindex))
 plt.ylabel("rc angle (deg)")
-plt.xlabel("\# model")
+plt.xlabel("# model")
 
 plt.subplot(313)
 plt.scatter(iindex, ttc, color="black", s=2, linewidth=0)
 plt.xlim(min(iindex), max(iindex))
 plt.ylabel("tc (s)")
-plt.xlabel("\# model")
+plt.xlabel("# model")
 
 plt.savefig(result_folder + "/centroid_evolution.png")
 plt.close()
@@ -297,7 +294,7 @@ plt.figure(1, figsize=(8.27, 11.69))
 plt.subplot(711)
 plt.scatter(iindex, zip(*mmisfit)[0], color="black", s=2, linewidth=0)
 plt.ylabel("Misfit")
-plt.xlabel("\# model")
+plt.xlabel("# model")
 plt.xlim(min(iindex), iindex[-1000])
 plt.ylim(0.1 * min(zip(*mmisfit)[0]), 10 * max(zip(*mmisfit)[0]))
 
@@ -309,7 +306,7 @@ plt.axhline(min_Amax, color="0.5", linestyle="--", zorder=9)
 plt.axhline(max_Amax, color="0.5", linestyle="--", zorder=9)
 plt.xlim(min(iindex), iindex[-1000])
 plt.ylabel("$A_{max}$ (km)")
-plt.xlabel("\# model")
+plt.xlabel("# model")
 
 plt.subplot(713)
 plt.scatter(iindex, AAmin_real, color="black", s=2, linewidth=0)
@@ -317,7 +314,7 @@ plt.scatter(
     iindex_bests, zip(*AAmin_bests)[0], color="red", s=2, linewidth=0, zorder=10
 )
 plt.ylabel("$A_{min}$ (km)")
-plt.xlabel("\# model")
+plt.xlabel("# model")
 plt.xlim(min(iindex), iindex[-1000])
 plt.axhline(best_Amin, color="0.5", zorder=9)
 plt.axhline(min_Amin, color="0.5", linestyle="--", zorder=9)
@@ -327,7 +324,7 @@ plt.subplot(714)
 plt.scatter(iindex, pphi, color="black", s=2, linewidth=0)
 plt.scatter(iindex_bests, zip(*pphi_bests)[0], color="red", s=2, linewidth=0, zorder=10)
 plt.ylabel("$\Phi$ (deg)")
-plt.xlabel("\# model")
+plt.xlabel("# model")
 plt.axhline(best_phi, color="0.5", zorder=9)
 plt.axhline(min_phi, color="0.5", linestyle="--", zorder=9)
 plt.axhline(max_phi, color="0.5", linestyle="--", zorder=9)
@@ -339,7 +336,7 @@ plt.scatter(
     iindex_bests, zip(*dduration_bests)[0], color="red", s=2, linewidth=0, zorder=10
 )
 plt.ylabel("$\Delta$ t (s)")
-plt.xlabel("\# model")
+plt.xlabel("# model")
 plt.xlim(min(iindex), iindex[-1000])
 plt.axhline(best_duration, color="0.5", zorder=9)
 plt.axhline(min_duration, color="0.5", linestyle="--", zorder=9)
@@ -351,7 +348,7 @@ plt.scatter(
     iindex_bests, zip(*vv_abs_bests)[0], color="red", s=2, linewidth=0, zorder=10
 )
 plt.ylabel("|v| (km/s)")
-plt.xlabel("\# model")
+plt.xlabel("# model")
 plt.xlim(min(iindex), iindex[-1000])
 plt.axhline(best_v_abs, color="0.5", zorder=9)
 plt.axhline(min_v_abs, color="0.5", linestyle="--", zorder=9)
@@ -363,7 +360,7 @@ plt.scatter(
     iindex_bests, zip(*vv_angle_bests)[0], color="red", s=2, linewidth=0, zorder=10
 )
 plt.ylabel("v angle (deg)")
-plt.xlabel("\# model")
+plt.xlabel("# model")
 plt.xlim(min(iindex), iindex[-1000])
 plt.axhline(best_v_ang, color="0.5", zorder=9)
 plt.axhline(min_v_ang, color="0.5", linestyle="--", zorder=9)
@@ -383,31 +380,31 @@ plt.subplots_adjust(
 )
 plt.hist(AAmax_real, bins=100, color="C0")
 plt.xlabel("$Amax (km$)", size=18)
-plt.ylabel("\# models")
+plt.ylabel("# models")
 
 plt.subplot(612)
 plt.hist(AAmin_real, bins=100, color="C1")
 plt.xlabel("Amin (km)", size=18)
-plt.ylabel("\# models")
+plt.ylabel("# models")
 
 plt.subplot(613)
 plt.hist(pphi, bins=100, color="C2")
-plt.ylabel("\# models")
+plt.ylabel("# models")
 plt.xlabel("Phi angle (degrees)", size=18)
 
 plt.subplot(614)
 plt.hist(dduration_real, bins=100, color="C3")
-plt.ylabel("\# models")
+plt.ylabel("# models")
 plt.xlabel("Duration (seconds)", size=18)
 
 plt.subplot(615)
 plt.hist(vv_abs, bins=100, color="C4")
-plt.ylabel("\# models")
+plt.ylabel("# models")
 plt.xlabel("|v| (km/s)", size=18)
 
 plt.subplot(616)
 plt.hist(vv_ang, bins=100, color="C5")
-plt.ylabel("\# models")
+plt.ylabel("# models")
 plt.xlabel("v angle (degrees)", size=18)
 
 plt.savefig(result_folder + "/hist1.png")
@@ -421,36 +418,36 @@ plt.subplots_adjust(
 )
 plt.hist(AAmax_real, bins=100, color="C0")
 plt.xlabel("Amax (km)")
-plt.ylabel("\# models")
+plt.ylabel("# models")
 plt.yscale("log")
 
 plt.subplot(612)
 plt.hist(AAmin_real, bins=100, color="C1")
 plt.xlabel("Amin (km)")
-plt.ylabel("\# models")
+plt.ylabel("# models")
 plt.yscale("log")
 
 plt.subplot(613)
 plt.hist(pphi, bins=100, color="C2")
-plt.ylabel("\# models")
+plt.ylabel("# models")
 plt.xlabel("Phi angle (degrees)")
 plt.yscale("log")
 
 plt.subplot(614)
 plt.hist(dduration_real, bins=100, color="C3")
-plt.ylabel("\# models")
+plt.ylabel("# models")
 plt.xlabel("Duration (seconds)")
 plt.yscale("log")
 
 plt.subplot(615)
 plt.hist(vv_abs, bins=100, color="C4")
-plt.ylabel("\# models")
+plt.ylabel("# models")
 plt.xlabel("|v| (km/s)")
 plt.yscale("log")
 
 plt.subplot(616)
 plt.hist(vv_ang, bins=100, color="C5")
-plt.ylabel("\# models")
+plt.ylabel("# models")
 plt.xlabel("v angle (degrees)")
 plt.yscale("log")
 
@@ -608,9 +605,7 @@ ax7.set_visible(False)
 
 cbaxes = fig.add_axes([0.2, 0.03, 0.6, 0.02])
 cb = plt.colorbar(it, cax=cbaxes, label="iteration number", orientation="horizontal")
-plt.savefig(result_folder + "/combined.png")
+plt.savefig(f"{result_folder}/combined.png")
 plt.close()
 
-
 # ==================================================================
-
