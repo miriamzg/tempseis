@@ -14,28 +14,21 @@ export path="" #location of tempseis
 
 ################################################################################
 
-rm Inversion/NA/data/rfi_files/OBS/*
-rm Inversion/NA/src/rfi_subs/point_source/*
-cd $path/TEMPSEIS_PACKAGE/Inversion/NA/src/rfi_subs/
-rm ./kernels/*
-cd $path/TEMPSEIS_PACKAGE/
+OBS_DATA_DIR=Inversion/NA/data/rfi_files/OBS  # these will need to change
+POINT_SOURCE_DIR=Inversion/NA/src/rfi_subs/point_source
+KERNELS_DIR=Inversion/NA/src/rfi_subs/kernels
 
-cp database/$file/$filtering/point_source/* Inversion/NA/src/rfi_subs/point_source/
-cp database/$file/$filtering/observed_data/* Inversion/NA/data/rfi_files/OBS/
+rm ${OBS_DATA_DIR}/*
+rm ${POINT_SOURCE_DIR}/*
+rm ${KERNELS_DIR}/*
 
-for d  in database/$file/$filtering/derivatives/*
-do
-cp $d  Inversion/NA/src/rfi_subs/kernels/
-done
+cp database/$file/$filtering/observed_data/* ${OBS_DATA_DIR}/
+cp database/$file/$filtering/point_source/* ${POINT_SOURCE_DIR}/
+cp database/$file/$filtering/derivatives/* ${KERNELS_DIR}/
 
-###############################################################################################################################################################
-cd $path/TEMPSEIS_PACKAGE/Inversion/Preparation
+python pytempseis/create_station_file_azimut.py $file $filtering ${OBS_DATA_DIR}
 
-python create_station_file_azimut.py 
-
-cd $path/TEMPSEIS_PACKAGE/Inversion
-
-cp $path/TEMPSEIS_PACKAGE/Inversion/Preparation/rfi.in $path/TEMPSEIS_PACKAGE/Inversion/NA/data/rfi_files/
+cp rfi.in $path/TEMPSEIS_PACKAGE/Inversion/NA/data/rfi_files/
 
 ###############################################################################################################################################################
 
