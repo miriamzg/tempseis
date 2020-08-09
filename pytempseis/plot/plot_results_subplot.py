@@ -241,102 +241,29 @@ print("***")
 rc_mean_module = round(np.median(rrc_mod), 1)
 rc_mean_angle = round(np.median(rrc_ang), 1)
 
-out = open(result_folder + "/best_parameters.txt", "w")
+out = open(f"{result_folder}/best_parameters.txt", "w")
 
-out.write("*** threshold: " + str(perc_treshold) + "% ***\n")
-out.write("Time centroid: " + str(best_tc) + "    \n")
-out.write("spatial centroid (delta):\n")
-out.write("rc module: " + "\t" + str(rc_mean_module) + "\n")
-out.write("rc angle: " + "\t" + str(rc_mean_angle) + "\n")
+out.write(f"*** threshold: {str(perc_treshold)}% ***\n")
+out.write(f"Time centroid: {str(best_tc)}     \n")
+out.write(f"spatial centroid (delta):\n")
+out.write(f"rc module: \t{str(rc_mean_module)} \n")
+out.write(f"rc angle: \t{str(rc_mean_angle)} \n")
 out.write(
-    "Duration: "
-    + "\t"
-    + str(best_duration)
-    + "\t( "
-    + str(min_duration)
-    + " - "
-    + str(max_duration)
-    + " )\n"
+    f"Duration: \t{str(best_duration)}\t( {str(min_duration)} - {str(max_duration)} )\n"
+)
+out.write(f"Amax: \t\t{str(best_Amax)}\t( {str(min_Amax)} - {str(max_Amax)} )\n")
+out.write(f"Amin: \t\t{str(best_Amin)}\t( {str(min_Amin)} - {str(max_Amin)} )\n")
+out.write(f"Phi: \t\t{str(best_phi)}\t( {str(min_phi)} - {str(max_phi)} )\n")
+out.write(f"V abs: \t\t{str(best_v_abs)}\t( {str(min_v_abs)} - {str(max_v_abs)} )\n")
+out.write(f"V ang: \t\t{str(best_v_ang)}\t( {str(min_v_ang)} - {str(max_v_ang)} )\n")
+out.write(
+    f"Stress Drop: \t\t{str(best_stress_drop)}\t( {str(min_stress_drop)} - {str(max_stress_drop)} )\n"
 )
 out.write(
-    "Amax: "
-    + "\t\t"
-    + str(best_Amax)
-    + "\t( "
-    + str(min_Amax)
-    + " - "
-    + str(max_Amax)
-    + " )\n"
+    f"Stress Drop Mcguire: \t\t{str(best_stress_drop_Mcguire)}\t( {str(min_stress_drop_Mcguire)} - {str(max_stress_drop_Amax)} )\n"
 )
 out.write(
-    "Amin: "
-    + "\t\t"
-    + str(best_Amin)
-    + "\t( "
-    + str(min_Amin)
-    + " - "
-    + str(max_Amin)
-    + " )\n"
-)
-out.write(
-    "Phi: "
-    + "\t\t"
-    + str(best_phi)
-    + "\t( "
-    + str(min_phi)
-    + " - "
-    + str(max_phi)
-    + " )\n"
-)
-out.write(
-    "V abs: "
-    + "\t\t"
-    + str(best_v_abs)
-    + "\t( "
-    + str(min_v_abs)
-    + " - "
-    + str(max_v_abs)
-    + " )\n"
-)
-out.write(
-    "V ang: "
-    + "\t\t"
-    + str(best_v_ang)
-    + "\t( "
-    + str(min_v_ang)
-    + " - "
-    + str(max_v_ang)
-    + " )\n"
-)
-out.write(
-    "Stress Drop: "
-    + "\t\t"
-    + str(best_stress_drop)
-    + "\t( "
-    + str(min_stress_drop)
-    + " - "
-    + str(max_stress_drop)
-    + " )\n"
-)
-out.write(
-    "Stress Drop Mcguire: "
-    + "\t\t"
-    + str(best_stress_drop_Mcguire)
-    + "\t( "
-    + str(min_stress_drop_Mcguire)
-    + " - "
-    + str(max_stress_drop_Amax)
-    + " )\n"
-)
-out.write(
-    "Stress Drop A max: "
-    + "\t\t"
-    + str(best_stress_drop_Amax)
-    + "\t( "
-    + str(min_stress_drop_Amax)
-    + " - "
-    + str(max_stress_drop_Amax)
-    + " )\n"
+    f"Stress Drop A max: \t\t{str(best_stress_drop_Amax)}\t( {str(min_stress_drop_Amax)} - {str(max_stress_drop_Amax)} )\n"
 )
 out.write("***")
 out.close()
