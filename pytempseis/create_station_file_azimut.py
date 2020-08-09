@@ -8,9 +8,9 @@ import matplotlib.pyplot as plt
 from argparse import ArgumentParser
 
 
-def get_station_coords(station):
+def get_station_coords(station, stations_file="../../STATIONS"):
     station_list = []
-    lines = open("../../STATIONS").readlines()
+    lines = open(stations_file).readlines()
     for i in range(0, len(lines)):
         sta = lines[i].split()[0]
         st_lat = float(lines[i].split()[2])
@@ -60,10 +60,12 @@ def calculate_initial_compass_bearing(pointA, pointB):
     return compass_bearing
 
 
-parser = ArgumentParser()
+parser = ArgumentParser(description="Builds station plots and rfi.in")
 parser.add_argument("event_code", type=str, help="GCMT event code")
 parser.add_argument("filtering", type=str)
 parser.add_argument("datadir", type=str, help="Directory with observed data files")
+parser.add_argument("--no_selection_file", action="store_true")
+parser.add_argument("--stations_file", type=str, help="File with station details")
 args = parser.parse_args()
 
 folder = os.path.join("..", "database", args.event_code)
@@ -76,17 +78,12 @@ dist_max_S = 90.0
 dist_min_W = 40.0
 dist_max_W = 120.0
 
-selection_file = os.path.join(folder, args.filtering, "station2use.txt")
-use_selection_file = True
-
 lines = open(cmt_file).readlines()
 ev_lat = float(lines[4].split()[1])
 ev_lon = float(lines[5].split()[1])
 
-stations2skip = []  # ["GAR", "INCN"]
-
-
-if use_selection_file:
+selection_file = os.path.join(folder, args.filtering, "station2use.txt")
+if not args.no_selection_file:
     data2use = []
     lines = open(selection_file).readlines()
     for i in range(1, len(lines)):
@@ -132,7 +129,7 @@ for wt in ["P", "S"]:
         data_name = fl.split("/")[-1].split("_ff")[0]
         comp = fl.split("/")[-1].split("_")[1]
 
-        st_lat, st_lon = get_station_coords(station)
+        st_lat, st_lon = get_station_coords(station, args.stations_file)
         dist = distance(st_lat, st_lon, ev_lat, ev_lon)[0]
         st = (st_lat, st_lon)
         ev = (ev_lat, ev_lon)
@@ -177,7 +174,7 @@ for wt in ["P", "S"]:
         data_name = fl.split("/")[-1].split("_ff")[0]
         comp = fl.split("/")[-1].split("_")[1]
 
-        st_lat, st_lon = get_station_coords(station)
+        st_lat, st_lon = get_station_coords(station, args.stations_file)
         dist = distance(st_lat, st_lon, ev_lat, ev_lon)[0]
         if wt == "P":
             dist_min = dist_min_P
@@ -221,9 +218,7 @@ for wt in ["P", "S"]:
             weight = str(round(density_sta, 3))
             outlines.append(f"{weight}\n")
     plt.ylim(0, dist_max)
-
     plt.colorbar(c)
-
     plt.savefig(f"tmp_{wt}.png")
     plt.close()
 
