@@ -181,14 +181,9 @@ for wt in ["P", "S"]:
         if wt == "P":
             dist_min = dist_min_P
             dist_max = dist_max_P
-        elif wt == "S":
+        else:
             dist_min = dist_min_S
             dist_max = dist_max_S
-        elif wt == "W":
-            dist_min = dist_min_W
-            dist_max = dist_max_W
-        else:
-            raise ValueError("Wrong wave type")
 
         st = (st_lat, st_lon)
         ev = (ev_lat, ev_lon)
