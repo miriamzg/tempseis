@@ -63,6 +63,7 @@ def calculate_initial_compass_bearing(pointA, pointB):
 parser = ArgumentParser()
 parser.add_argument("event_code", type=str, help="GCMT event code")
 parser.add_argument("filtering", type=str)
+parser.add_argument("datadir", type=str, help="Directory with observed data files")
 args = parser.parse_args()
 
 folder = os.path.join("..", "database", args.event_code)
@@ -100,12 +101,12 @@ if use_selection_file:
 # 	write station file
 # =====================================================================
 print("Writing station file...")
-filelist = glob.glob("../NA/data/rfi_files/OBS/*")
-out = open("rfi.in", "w")
-out.write("#\n# Input file for receiver function inversion specific information\n#\n")
-out.write("rfi_param                              /* input model   */\n")
-out.write("rfi_models                             /* output models */\n")
-out.write(str(len(filelist)) + "\t\t\t/* nwave */\n")
+filelist = glob.glob(args.datadir)
+outlines = []
+outlines.append("#\n# Input file for receiver function inversion specific information\n#\n")
+outlines.append("rfi_param                              /* input model   */\n")
+outlines.append("rfi_models                             /* output models */\n")
+outlines.append(str(len(filelist)) + "\t\t\t/* nwave */\n")
 n = 0
 
 for wt in ["P", "S"]:
@@ -216,9 +217,9 @@ for wt in ["P", "S"]:
                 s=40,
             )
             ax2.annotate(station, xy=(math.radians(baz), dist))
-            out.write(f"{data_name}\n")
+            outlines.append(f"{data_name}\n")
             weight = str(round(density_sta, 3))
-            out.write(f"{weight}\n")
+            outlines.append(f"{weight}\n")
     plt.ylim(0, dist_max)
 
     plt.colorbar(c)
@@ -226,20 +227,8 @@ for wt in ["P", "S"]:
     plt.savefig(f"tmp_{wt}.png")
     plt.close()
 
-out.write("1                                       /* iwrite_models */")
-out.close()
+outlines.append("1                                       /* iwrite_models */")
+outlines.insert(5, f"{n}\t\t\t/* nwave */\n")
 
-
-out = open("rfi.in_new", "w")
-lines = open("rfi.in", "r").readlines()
-for i in range(0, len(lines)):
-
-    if i == 5:
-        out.write(str(n) + "\t\t\t/* nwave */\n")
-    else:
-        out.write(lines[i])
-out.close()
-os.system("mv rfi.in_new rfi.in")
-
-
-os.system("cp rfi.in ../NA/data/rfi_files")
+with open("rfi.in", "w") as outfile:
+    outfile.writelines(outlines)
