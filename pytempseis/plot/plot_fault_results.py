@@ -30,11 +30,11 @@ def full_rotation(x, y, z, strike, dip):
 
 
 result_folder = sys.argv[1]
-result_file = result_folder + "/rfi_models"
+result_file = f"{result_folder}/rfi_models"
 
 
 fault_model = "./c000kn4n.fsp"
-result_parameters = result_folder + "/best_parameters.txt"
+result_parameters = f"{result_folder}/best_parameters.txt"
 
 
 ev_lon = 144.66
@@ -132,7 +132,6 @@ ax.arrow(
     zorder=2,
 )
 ax.autoscale()
-# plt.show()
-plt.savefig(result_folder + "/2D_finite_fault.png")
+plt.savefig(f"{result_folder}/2D_finite_fault.png")
 plt.close()
 sys.exit()
