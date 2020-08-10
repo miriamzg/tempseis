@@ -28,11 +28,9 @@ cp station_mft.asc ${results_folder}
 cp best_model.asc ${results_folder}
 
 #running plotting scripts 
-cd $path/TEMPSEIS_PACKAGE/Inversion/Plot_results
+cd $path/TEMPSEIS_PACKAGE/pytempseis/plot
 python plot_results_subplot.py ${results_folder}
 python plot_fault_results.py ${results_folder}            # uncomment for real data test
-# python plot_fault_results_SYNT.py ${results_folder}  # uncomment for synthetic test
 python plot_correlations.py ${results_folder}
 python plot_station_map_body_surface.py ${results_folder} + lat + lon
-# python plot_observed_vs_best_predicted_body_surface.py${results_folder}
 python plot_seismograms2.py ${results_folder}
