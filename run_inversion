@@ -33,4 +33,4 @@ python plot_results_subplot.py ${results_folder}
 python plot_fault_results.py ${results_folder}            # uncomment for real data test
 python plot_correlations.py ${results_folder}
 python plot_station_map_body_surface.py ${results_folder} + lat + lon
-python plot_seismograms2.py ${results_folder}
+python plot_seismograms.py ${results_folder}
