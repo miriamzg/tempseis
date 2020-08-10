@@ -169,14 +169,9 @@ for wavetype in ["P", "S"]:
             print(c)
             ax.set_xticklabels([])
         plt.xlim(tstart - 30, tend + 90)
-        if len(station) == 3:
+        if len(station) == 3 or len(station) == 4:
             plt.annotate(
-                station + " " + comp, xy=(0.75, 0.85), xycoords="axes fraction", fontsize=11
-            )
-            plt.annotate(str(mft), xy=(0.75, 0.15), xycoords="axes fraction", fontsize=11)
-        if len(station) == 4:
-            plt.annotate(
-                station + " " + comp, xy=(0.75, 0.85), xycoords="axes fraction", fontsize=11
+                f"{station} {comp}", xy=(0.75, 0.85), xycoords="axes fraction", fontsize=11
             )
             plt.annotate(str(mft), xy=(0.75, 0.15), xycoords="axes fraction", fontsize=11)
         n += 1
