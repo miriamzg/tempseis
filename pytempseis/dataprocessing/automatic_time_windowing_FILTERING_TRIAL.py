@@ -5,14 +5,8 @@ from obspy.core import read
 from obspy.taup import TauPyModel
 import glob
 import obspy
-
-# import geopy.distance
 import numpy as np
-from obspy.clients.iris import Client
-
-sys.path.insert(0, "../lib/")
-from functions import *
-from obspy.core.util import AttribDict
+from pytempseis.functions import filter_trace, distance, trim_trace_abs
 
 
 real = True
