@@ -1,4 +1,0 @@
-read $1 $2 
-rotate to $3
-w $4 $5
-q
