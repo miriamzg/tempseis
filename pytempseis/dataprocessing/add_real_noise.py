@@ -1,14 +1,7 @@
 import matplotlib.pylab as plt
-from mineos_synthetics import *
 from obspy.core import read
-import sys
 import os
-from functions import *
-from fault_generator import *
-from decimal import Decimal
 import glob
-
-sys.path.insert(0, "../recap/lib_recap/")
 
 
 synt_folder = "../database/CMTSOLUTION_201310251710A_SYNT_50/processed_data/"
