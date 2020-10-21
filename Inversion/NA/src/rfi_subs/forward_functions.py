@@ -1,4 +1,5 @@
 import numpy as np
+import glob
 
 
 def unit_vector(vector):
@@ -68,6 +69,19 @@ def load_derivative(der, station, component, event):
     tr = read(event + "/derivates/" + der + "/" + station + "*" + component + ".sac")[0]
     tr_array = np.asarray(tr.data)
     return tr_array
+
+
+def load_derivatives(derivative_list, event_code, station, component):
+    freq_der = {}
+    dS = {}
+    for der in derivative_list:
+        filename = glob.glob(
+            f"../CMTSOLUTION_{event_code}/derivatives/{der}/{station}.{component}.txt"
+        )[0]
+        freq_der[der], dS[der] = np.genfromtxt(
+            filename, delimiter="\t", unpack=True, dtype=np.complex128
+        )
+    return freq_der, dS
 
 
 def fft(tr):
@@ -142,33 +156,13 @@ def origin_time_and_location(cmtfile):
 
 
 def calc_f1_dS1_XXX(event_code, station, component, f1):
-    import glob
-
     derivative_list = [
         "dSdx",
         "dSdy",
         "dSdz",
     ]
+    freq_der, dS = load_derivatives(derivative_list, event_code, station, component)
 
-    # load derivatives
-    freq_der = {}
-    dS = {}
-    for der in derivative_list:
-        filename = glob.glob(
-            "../CMTSOLUTION_"
-            + event_code
-            + "/derivatives/"
-            + der
-            + "/"
-            + station
-            + "."
-            + component
-            + ".txt"
-        )[0]
-        lines = open(filename)
-        freq_der[der], dS[der] = np.genfromtxt(
-            filename, delimiter="\t", unpack=True, dtype=np.complex128
-        )
     dS1 = np.matrix([dS["dSdx"], dS["dSdy"], dS["dSdz"]])
     f1_dS = np.dot(f1, dS1)[0]
 
@@ -176,29 +170,9 @@ def calc_f1_dS1_XXX(event_code, station, component, f1):
 
 
 def calc_f1_dS1(event_code, station, component, f1):
-    import glob
-
     derivative_list = ["dSdx", "dSdy", "dSdz"]
 
-    # load derivatives
-    freq_der = {}
-    dS = {}
-    for der in derivative_list:
-        filename = glob.glob(
-            "../CMTSOLUTION_"
-            + event_code
-            + "/derivatives/"
-            + der
-            + "/"
-            + station
-            + "."
-            + component
-            + ".txt"
-        )[0]
-        lines = open(filename)
-        freq_der[der], dS[der] = np.genfromtxt(
-            filename, delimiter="\t", unpack=True, dtype=np.complex128
-        )
+    freq_der, dS = load_derivatives(derivative_list, event_code, station, component)
 
     f1_dS = []
     for i in range(0, len(freq_der["dSdx"])):
@@ -210,29 +184,9 @@ def calc_f1_dS1(event_code, station, component, f1):
 
 
 def calc_f2_dS2(event_code, station, component, f20):
-    import glob
-
     derivative_list = ["dS2dx2", "dS2dy2", "dS2dz2", "dSdxdy", "dSdxdz", "dSdydz"]
 
-    # load derivatives
-    freq_der = {}
-    dS = {}
-    for der in derivative_list:
-        filename = glob.glob(
-            "./CMTSOLUTION_"
-            + event_code
-            + "/derivatives/"
-            + der
-            + "/"
-            + station
-            + "."
-            + component
-            + ".txt"
-        )[0]
-        lines = open(filename)
-        freq_der[der], dS[der] = np.genfromtxt(
-            filename, delimiter="\t", unpack=True, dtype=np.complex128
-        )
+    freq_der, dS = load_derivatives(derivative_list, event_code, station, component)
 
     f2_dS2 = []
     for i in range(0, len(freq_der["dS2dx2"])):
