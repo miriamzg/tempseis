@@ -146,19 +146,21 @@ model = "prem_noocean.txt"
 c = "Z"
 
 for station in station_list:
-    # freq_der, dS = load_derivatives(station)
-    # dS2 = [[dS["dS2dx2"],dS["dSdxdy"],dS["dSdxdz"]],
-    #    [dS["dSdxdy"],dS["dS2dy2"],dS["dSdydz"]],
-    #    [dS["dSdxdz"],dS["dSdydz"],dS["dS2dz2"]]]
-    # S1_trace = read("point_source/NA."+station+"..LHZ.sac.disp_S1")[0]
-    # S1_freq, S1_fft = full_fft(S1_trace)
-    # npoints=len(S1_trace.data)
+    freq_der, dS = load_derivatives(station)
+    dS2 = [
+        [dS["dS2dx2"], dS["dSdxdy"], dS["dSdxdz"]],
+        [dS["dSdxdy"], dS["dS2dy2"], dS["dSdydz"]],
+        [dS["dSdxdz"], dS["dSdydz"], dS["dS2dz2"]],
+    ]
+    S1_trace = read(f"point_source/NA.{station}..LHZ.sac.disp_S1")[0]
+    S1_freq, S1_fft = full_fft(S1_trace)
+    npoints = len(S1_trace.data)
 
-    # inv_S1_calc = np.fft.ifft(S1_fft, n=npoints)
+    inv_S1_calc = np.fft.ifft(S1_fft, n=npoints)
 
     W = calculate_W(Lmax, Lmin, phi, dip, strike)
     sys.exit()
-    # E = 0.5 * np.tensordot(W, dS2) / 2.
+    E = 0.5 * np.tensordot(W, dS2) / 2.
     S2_predicted = S1_fft + E
     inv_S2_pred = np.fft.ifft(S2_predicted, n=npoints)
 
