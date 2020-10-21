@@ -148,13 +148,12 @@ def calc_f1_dS1_XXX(event_code, station, component, f1):
         "dSdx",
         "dSdy",
         "dSdz",
-    ]  # , "dS2dx2", "dS2dy2","dS2dz2", "dSdxdy", "dSdxdz", "dSdydz"]
+    ]
 
     # load derivatives
     freq_der = {}
     dS = {}
     for der in derivative_list:
-        # print "./CMTSOLUTION_" + event_code + "/derivatives/"+der+"/"+station+"."+component+".txt"
         filename = glob.glob(
             "../CMTSOLUTION_"
             + event_code
@@ -185,7 +184,6 @@ def calc_f1_dS1(event_code, station, component, f1):
     freq_der = {}
     dS = {}
     for der in derivative_list:
-        # print "./CMTSOLUTION_" + event_code + "/derivatives/"+der+"/"+station+"."+component+".txt"
         filename = glob.glob(
             "../CMTSOLUTION_"
             + event_code
@@ -207,9 +205,6 @@ def calc_f1_dS1(event_code, station, component, f1):
         a = 0.0
         a = dS["dSdx"][i] * f1[0] + dS["dSdy"][i] * f1[1] + dS["dSdz"][i] * f1[2]
         f1_dS.append(a)
-
-    # dS1 = np.matrix([dS["dSdx"],dS["dSdy"],dS["dSdz"]])
-    # f1_dS = np.dot(f1, dS1)[0]
 
     return np.asarray(f1_dS)
 
@@ -255,13 +250,5 @@ def calc_f2_dS2(event_code, station, component, f20):
         )
 
         f2_dS2.append(a)
-
-    # 	S = np.matrix( [[dS["dS2dx2"],dS["dSdxdy"],dS["dSdxdz"]],
-    # 			[dS["dSdxdy"],dS["dS2dy2"],dS["dSdydz"]],
-    # 			[dS["dSdxdz"],dS["dSdydz"],dS["dS2dz2"]]])
-    # 	print a
-    # 	print b
-    # 	f2_dS2 = np.trace(np.inner(a,b))
-    # 	print f2_dS2
 
     return np.asarray(f2_dS2)
