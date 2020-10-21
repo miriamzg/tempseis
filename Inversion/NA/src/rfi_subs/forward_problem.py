@@ -2,7 +2,6 @@ import numpy as np
 from numpy import linalg as LA
 import os
 from obspy.core import read
-import sys
 
 
 def load_derivatives(station):
@@ -88,7 +87,6 @@ def calculate_W(Lmax, Lmin, phi, dip, strike):
 
     W = np.dot(np.dot(S, M), Sinv)
     print(W)
-    sys.exit()
     return W
 
 
@@ -159,7 +157,6 @@ for station in station_list:
     inv_S1_calc = np.fft.ifft(S1_fft, n=npoints)
 
     W = calculate_W(Lmax, Lmin, phi, dip, strike)
-    sys.exit()
     E = 0.5 * np.tensordot(W, dS2) / 2.
     S2_predicted = S1_fft + E
     inv_S2_pred = np.fft.ifft(S2_predicted, n=npoints)
@@ -173,5 +170,3 @@ for station in station_list:
     )
 
 os.chdir("../../data/")
-
-sys.exit()
