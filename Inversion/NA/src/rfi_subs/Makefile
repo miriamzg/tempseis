@@ -15,8 +15,7 @@ RFI = $(DIR)/theo.o $(DIR)/qlayer.o $(DIR)/read_data.o $(DIR)/read_seed.o \
       $(DIR)/forward_modelling.o $(DIR)/calcmisfit.o $(DIR)/display_model.o \
       $(DIR)/display_final.o $(DIR)/lofw.o $(DIR)/four1.o \
       $(DIR)/output_summary.o $(DIR)/read_vmodelNA.o $(DIR)/write_data.o \
-      $(DIR)/ran3.o $(DIR)/theo_noise.o $(DIR)/indexx.o $(DIR)/write_srf.o\
-      $(DIR)/read_data_fortran.o
+      $(DIR)/ran3.o $(DIR)/theo_noise.o $(DIR)/indexx.o $(DIR)/write_srf.o
 
 # make rfi_subs 
 

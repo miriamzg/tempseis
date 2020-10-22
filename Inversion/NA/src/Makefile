@@ -33,7 +33,6 @@ USER_OBJ = \
          $(USER_DIR)/theo.o \
          $(USER_DIR)/qlayer.o \
          $(USER_DIR)/read_data.o \
-	 $(USER_DIR)/read_data_fortran.o \
          $(USER_DIR)/read_seed.o \
          $(USER_DIR)/forward_modelling.o \
          $(USER_DIR)/calcmisfit.o \
