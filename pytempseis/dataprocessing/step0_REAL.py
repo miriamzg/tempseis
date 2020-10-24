@@ -3,18 +3,18 @@ import sys
 import glob
 from obspy.core import read
 
-sys.path.insert(0, "../lib/seis_process/bin/")
-
 
 Event_code = sys.argv[1]
+database = sys.argv[2]
 
-Data_folder = f"../database/{Event_code}/raw_data/"
-out_folder = f"../database/{Event_code}/processed_data/"
+Data_folder = f"{database}/{Event_code}/raw_data/"
+out_folder = f"{database}/{Event_code}/processed_data/"
+perl_dir = f"{os.path.dirname(os.path.abspath(__file__))}/../../lib/seis_process/bin"
 
 sampling_rate = 0.5
 
 # -------------------------------------------------------
-sta_lines = open("../STATIONS").readlines()
+sta_lines = open(f"{database}/STATIONS").readlines()
 station_list = []
 for i in range(0, len(sta_lines)):
     station_list.append(sta_lines[i].split()[0])
@@ -23,32 +23,31 @@ for i in range(0, len(sta_lines)):
 # Post processing real data
 # =================================================
 # extract from seed to sac
-os.chdir(Data_folder)
 for i in range(0, len(station_list)):
     try:
         station_name = str(station_list[i])
         print(station_name)
-        rdseed_file1 = glob.glob(f"./{station_name}.*.mseed")[0]
+        rdseed_file1 = glob.glob(f"{Data_folder}/{station_name}.*.mseed")[0]
         print(rdseed_file1)
-        rdseed_file2 = glob.glob(f"./*-{station_name}.*.dataless")[0]
+        rdseed_file2 = glob.glob(f"{Data_folder}/*-{station_name}.*.dataless")[0]
         print(rdseed_file2)
-        command = f"rdseed -d -o 1 -p -f {rdseed_file1} -g {rdseed_file2}"
+        command = f"rdseed -d -o 1 -p -f {rdseed_file1} -g {rdseed_file2} -q {Data_folder}> /dev/null"
         os.system(command)
     except IndexError:
         pass
 
 # apply instrument correction
-CMT_folder = "../"
+CMT_folder = f"{Data_folder}/../"
 CMT_file = CMT_folder + Event_code
-command = f"process_data.pl -x corr -i -m {CMT_file} -s 2 -t 5/500 *.SAC"
+command = f"perl {perl_dir}/process_data.pl -x corr -i -m {CMT_file} -s 2 -t 5/500 {Data_folder}*.SAC"
 os.system(command)
 
 # rotate 12 to RT
-command = "rotate.pl *BH1*.corr"
+command = f"perl {perl_dir}/rotate.pl {Data_folder}*BH1*.corr"
 os.system(command)
 
 # rotate NE to RT
-command = "rotate.pl *BHE*.corr"
+command = f"perl {perl_dir}/rotate.pl {Data_folder}*BHE*.corr"
 os.system(command)
 
 # Rename files
@@ -56,7 +55,7 @@ channel = "BH"
 n = 1
 filelist = []
 for station in station_list:
-    Zfile_list = glob.glob(f"*{station}.00.{channel}*Z*.corr")
+    Zfile_list = glob.glob(f"{Data_folder}*{station}.00.{channel}*Z*.corr")
 
     if len(Zfile_list) != 0:
         Zfile = Zfile_list[0]
@@ -91,16 +90,16 @@ for station in station_list:
             Rtr.interpolate(sampling_rate=sampling_rate, method="linear")
             Ttr.interpolate(sampling_rate=sampling_rate, method="linear")
 
-            Ztr.write(f"../processed_data/{Ztr.id}", format="SAC")
+            Ztr.write(f"{out_folder}/{Ztr.id}", format="SAC")
             filelist.append(Ztr.id)
             Ntr.write(
-                f"../processed_data/{Ntr.id.replace(channel + '1', channel + 'N')}",
+                f"{out_folder}/{Ntr.id.replace(channel + '1', channel + 'N')}",
                 format="SAC",
             )
             Etr.write(
-                f"../processed_data/{Etr.id.replace(channel + '2', channel + 'E')}",
+                f"{out_folder}/{Etr.id.replace(channel + '2', channel + 'E')}",
                 format="SAC",
             )
-            Rtr.write(f"../processed_data/{Rtr.id}", format="SAC")
-            Ttr.write(f"../processed_data/{Ttr.id}", format="SAC")
+            Rtr.write(f"{out_folder}/{Rtr.id}", format="SAC")
+            Ttr.write(f"{out_folder}/{Ttr.id}", format="SAC")
             n += 1
