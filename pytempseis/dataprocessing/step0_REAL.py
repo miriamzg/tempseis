@@ -86,8 +86,6 @@ for station in station_list:
             and os.path.isfile(Rfile)
             and os.path.isfile(Tfile)
         ):
-            print(station)
-            print("test")
             Ntr = read(Nfile)[0]
             Etr = read(Efile)[0]
             Ztr = read(Zfile)[0]

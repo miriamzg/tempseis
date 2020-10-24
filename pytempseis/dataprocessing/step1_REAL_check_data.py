@@ -27,9 +27,10 @@ def filter_trace(trace, Tmin, Tmax):
 
 
 event_code = sys.argv[1]
+database = sys.argv[2]
 
-Data_folder = f"../database/{event_code}/processed_data/"
-Synt_folder = f"../database/{event_code}/synthetics/point_source"
+Data_folder = f"{database}/{event_code}/processed_data/"
+Synt_folder = f"{database}/{event_code}/synthetics/point_source"
 
 
 plot_folder = f"{Data_folder}/first_check_plots/"
@@ -41,11 +42,11 @@ Tmax = 150.0
 xlim_min = 0.0
 xlim_max = 6000.0
 
-output_file = f"../database/{event_code}/first_check.txt"
+output_file = f"{database}/{event_code}/first_check.txt"
 out = open(output_file, "w")
 out.write("Sta\tComp\tQuality (Y: ok, N: bad, I: inverted)\n")
 # -------------------------------------------------------
-sta_lines = open("../STATIONS").readlines()
+sta_lines = open(f"{database}/STATIONS").readlines()
 station_list = []
 for i in range(0, len(sta_lines)):
     station_list.append(sta_lines[i].split()[0])
