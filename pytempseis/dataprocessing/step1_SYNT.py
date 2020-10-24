@@ -1,18 +1,21 @@
 import glob
 import os
+import sys
 import numpy as np
 from pytempseis.functions import shift_stream, filter_trace
 from obspy.core import read
 import matplotlib.pyplot as plt
 
+event_code = sys.argv[1]
+database = sys.argv[2]
 
-event_code = "CMTSOLUTION_201310251710A_SYNT_50"
-raw_data_folder = f"../database/{event_code}/raw_data/"
-processed_data_folder = f"../database/{event_code}/processed_data/"
-cmt_finite_fault = f"../database/{event_code}/{event_code}"
+raw_data_folder = f"{database}/{event_code}/raw_data/"
+processed_data_folder = f"{database}/{event_code}/processed_data/"
+cmt_finite_fault = f"{database}/{event_code}/{event_code}"
 sampling_rate = 0.5  # Hz
 
-os.system(f"mkdir {processed_data_folder}")
+if not os.path.exists(processed_data_folder):
+    os.system(f"mkdir {processed_data_folder}")
 
 # ------- compute time centroid and count point sources ----------
 tt = []
