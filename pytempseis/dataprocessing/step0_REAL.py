@@ -7,8 +7,18 @@ from obspy.core import read
 Event_code = sys.argv[1]
 database = sys.argv[2]
 
+if not os.path.exists(database):
+    raise FileNotFoundError(database)
+
 Data_folder = f"{database}/{Event_code}/raw_data/"
+if not os.path.exists(Data_folder):
+    raise FileNotFoundError(Data_folder)
+
 out_folder = f"{database}/{Event_code}/processed_data/"
+if not os.path.exists(out_folder):
+    print(f"Making output directory {out_folder}")
+    os.mkdir(out_folder)
+
 perl_dir = f"{os.path.dirname(os.path.abspath(__file__))}/../../lib/seis_process/bin"
 
 sampling_rate = 0.5
