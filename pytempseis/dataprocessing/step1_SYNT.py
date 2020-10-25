@@ -21,9 +21,9 @@ if not os.path.exists(processed_data_folder):
 tt = []
 cmt_lines = open(cmt_finite_fault).readlines()
 n_points = 0
-for i in range(0, len(cmt_lines)):
-    if cmt_lines[i].split()[0] == "time":
-        time_shift = float(cmt_lines[i].split()[2])
+for line in cmt_lines:
+    if line.split()[0] == "time":
+        time_shift = float(line.split()[2])
         tt.append(time_shift)
         n_points += 1
 
@@ -31,9 +31,8 @@ for i in range(0, len(cmt_lines)):
 time_centroid = np.median(tt)
 print(f"time centroid: {time_centroid}")
 filelist = glob.glob(f"{raw_data_folder}*.sac")
-for i in range(0, len(filelist)):
-    raw_filename = filelist[i]
-    filename = filelist[i].split("/")[-1]
+for raw_filename in filelist:
+    filename = raw_filename.split("/")[-1]
 
     tr = read(raw_filename)[0]
     tr_new = tr.copy()

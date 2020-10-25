@@ -24,22 +24,21 @@ perl_dir = f"{os.path.dirname(os.path.abspath(__file__))}/../../lib/seis_process
 sampling_rate = 0.5
 
 # -------------------------------------------------------
-sta_lines = open(f"{database}/STATIONS").readlines()
-station_list = []
-for i in range(0, len(sta_lines)):
-    station_list.append(sta_lines[i].split()[0])
+with open(f"{database}/STATIONS") as f:
+    station_list = []
+    for line in f:
+        station_list.append(line.split()[0])
 
 # =================================================
 # Post processing real data
 # =================================================
 # extract from seed to sac
-for i in range(0, len(station_list)):
+for station in station_list:
     try:
-        station_name = str(station_list[i])
-        print(station_name)
-        rdseed_file1 = glob.glob(f"{Data_folder}/{station_name}.*.mseed")[0]
+        print(station)
+        rdseed_file1 = glob.glob(f"{Data_folder}/{station}.*.mseed")[0]
         print(rdseed_file1)
-        rdseed_file2 = glob.glob(f"{Data_folder}/*-{station_name}.*.dataless")[0]
+        rdseed_file2 = glob.glob(f"{Data_folder}/*-{station}.*.dataless")[0]
         print(rdseed_file2)
         command = f"rdseed -d -o 1 -p -f {rdseed_file1} -g {rdseed_file2} -q {Data_folder}> /dev/null"
         os.system(command)

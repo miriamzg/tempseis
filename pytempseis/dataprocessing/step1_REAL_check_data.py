@@ -46,15 +46,14 @@ output_file = f"{database}/{event_code}/first_check.txt"
 out = open(output_file, "w")
 out.write("Sta\tComp\tQuality (Y: ok, N: bad, I: inverted)\n")
 # -------------------------------------------------------
-sta_lines = open(f"{database}/STATIONS").readlines()
-station_list = []
-for i in range(0, len(sta_lines)):
-    station_list.append(sta_lines[i].split()[0])
+with open(f"{database}/STATIONS") as f:
+    station_list = []
+    for line in f:
+        station_list.append(line.split()[0])
 
 components_list = ["Z", "R", "T"]
 
-for i in range(0, len(station_list)):
-    station = station_list[i]
+for i, station in enumerate(station_list):
     for c in components_list:
         print(f"Station: {station} Component: {c}    {i + 1} / {len(station_list)}")
         if len(glob.glob(f"{Data_folder}/*{station}*BH{c}")) == 1:

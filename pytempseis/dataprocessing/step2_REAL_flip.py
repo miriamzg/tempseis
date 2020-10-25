@@ -13,20 +13,18 @@ channel = "BH"
 os.system(f"mkdir {output_folder}")
 os.system(f"rm {output_folder}" + "*.sac")
 
-sta_lines = open(f"{database}/{event_code}/first_check.txt").readlines()
-station_list = []
-for i in range(1, len(sta_lines)):
-    station = sta_lines[i].split()[0]
-    comp = sta_lines[i].split()[1]
-    status = sta_lines[i].split()[2]
-    station_list.append([station, comp, status])
+with open(f"{database}/{event_code}/first_check.txt") as file:
+    next(file)
+    station_list = []
+    for line in file:
+        station = line.split()[0]
+        comp = line.split()[1]
+        status = line.split()[2]
+        station_list.append([station, comp, status])
 
 
-for i in range(0, len(station_list)):
-    station = station_list[i][0]
-    comp = station_list[i][1]
-    status = station_list[i][2]
-
+for line in station_list:
+    station, comp, status = line
     print(station, comp, status)
 
     filename = glob.glob(f"{data_folder}*{station}*.00.{channel}{comp}")[0]
