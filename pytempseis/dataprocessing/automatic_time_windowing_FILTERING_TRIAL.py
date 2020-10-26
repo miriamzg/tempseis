@@ -12,16 +12,17 @@ from pytempseis.functions import filter_trace, distance, trim_trace_abs
 real = True
 
 event_code = sys.argv[1]
-channel = "MX"
+database = sys.argv[2]
 
-folder = f"../database/{event_code}"
-data_folder = f"{folder}/processed_data/"
-
+folder = f"{database}/{event_code}"
 cmt_file = f"{folder}/{event_code}"
 
 if real:
     channel = "BH"
     data_folder = f"{folder}/data_ready2use/"
+else:
+    channel = "MX"
+    data_folder = f"{folder}/processed_data/"
 
 Tmin_p = 20  # 25
 Tmax_p = 70  # 60
@@ -42,8 +43,9 @@ pretime_r = 2 * Tmax_r  # 500
 posttime_r = 4 * Tmax_r  # 500
 
 
-plot_folder = f"folder/plots_picking_{Tmin_p}_{Tmax_p}_{Tmin_s}_{Tmax_s}_{Tmin_r}_{Tmax_r}/"
-os.system("mkdir " + plot_folder)
+plot_folder = f"{folder}/plots_picking_{Tmin_p}_{Tmax_p}_{Tmin_s}_{Tmax_s}_{Tmin_r}_{Tmax_r}/"
+if not os.path.exists(plot_folder):
+    os.mkdir(plot_folder)
 
 lines = open(cmt_file).readlines()
 ev_lat = float(lines[4].split()[1])
@@ -52,7 +54,7 @@ ev_dep = float(lines[6].split()[1])
 
 taup_model = TauPyModel(model="iasp91")
 
-sta_lines = open("../STATIONS").readlines()
+sta_lines = open(f"{database}/STATIONS").readlines()
 
 if real:
     file_list = sorted(glob.glob(f"{data_folder}*{channel}Z"))
@@ -64,7 +66,7 @@ else:
     file_list += sorted(glob.glob(f"{data_folder}*{channel}T*.corr.int"))
 
 out = open(
-    f"folder/picking_times_{Tmin_p}_{Tmax_p}_{Tmin_s}_{Tmax_s}_{Tmin_r}_{Tmax_r}.txt",
+    f"{folder}/picking_times_{Tmin_p}_{Tmax_p}_{Tmin_s}_{Tmax_s}_{Tmin_r}_{Tmax_r}.txt",
     "w",
 )
 out.write(f"Period bands s: {Tmin_s}\t{Tmax_s}\n")
@@ -103,11 +105,11 @@ for file in file_list:
     st_lon = tr.stats["sac"]["stlo"]
 
     station = tr.stats.station
-    for i in range(0, len(sta_lines)):
-        if station == sta_lines[i].split()[0]:
-            print(sta_lines[i])
-            st_lat = float(sta_lines[i].split()[2])
-            st_lon = float(sta_lines[i].split()[3])
+    for line in sta_lines:
+        if station == line.split()[0]:
+            print(line)
+            st_lat = float(line.split()[2])
+            st_lon = float(line.split()[3])
 
     delta = tr.stats.delta
     channel = tr.stats.channel
@@ -221,7 +223,7 @@ for file in file_list:
         # Write the picking time into a file
         # ---
         line = (
-            f"station\t{channel}l\t{starttime}\t{begin}\t{origintime}\t{p_start_final_abs}\t{p_end_final_abs}\t{s_start_final_abs}\t{s_end_final_abs}\t{r_start_final_abs}\t{r_end_final_abs}\n"
+            f"{station}\t{channel}l\t{starttime}\t{begin}\t{origintime}\t{p_start_final_abs}\t{p_end_final_abs}\t{s_start_final_abs}\t{s_end_final_abs}\t{r_start_final_abs}\t{r_end_final_abs}\n"
         )
         out.write(line)
 
@@ -323,7 +325,7 @@ for file in file_list:
         plt.axvline(r_start2, color="black", linestyle="--")
         plt.ylabel("surf. waves")
 
-        plt.suptitle("Station: " + station + " Channel: " + channel)
-        plt.savefig(plot_folder + "/" + station + "_" + channel + "_picking.png")
+        plt.suptitle(f"Station: {station} Channel: {channel}")
+        plt.savefig(f"{plot_folder}/{station}_{channel}_picking.png")
         plt.close()
 out.close()
