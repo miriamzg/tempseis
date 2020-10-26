@@ -5,17 +5,6 @@ import glob
 import matplotlib.pylab as plt
 
 
-def onclick(event):
-    global xx, yy
-    y = event.ydata
-    x = event.xdata
-    yy.append(y)
-    xx.append(x)
-    if len(yy) == 1:
-        fig.canvas.mpl_disconnect(cid)
-        plt.close()
-
-
 def filter_trace(trace, Tmin, Tmax):
     trace.detrend("demean")
     trace.taper(0.05, type="hann")
@@ -24,6 +13,21 @@ def filter_trace(trace, Tmin, Tmax):
     )
     trace.taper(0.05, type="hann")
     return trace
+
+
+class PointPicker:
+    def __init__(self, fig):
+        self.fig = fig
+        self.xx = []
+        self.yy = []
+        self.cid = fig.canvas.callbacks.connect("button_press_event", self)
+
+    def __call__(self, event):
+        self.xx.append(event.xdata)
+        self.yy.append(event.ydata)
+        if len(self.yy) == 1:
+            self.fig.canvas.mpl_disconnect(self.cid)
+            plt.close()
 
 
 def check_data(event_code, database):
@@ -65,7 +69,6 @@ def check_data(event_code, database):
 
                 xlim_mid = (xlim_max + xlim_min) / 2.0
 
-                xx, yy = [], []
                 fig, ax = plt.subplots()
                 fig = plt.figure(1, figsize=(11.69, 8.27))
                 plt.subplot(211)
@@ -126,14 +129,13 @@ def check_data(event_code, database):
                 plt.axvline(xlim_mid, linestyle=":")
                 plt.xlim(xlim_min, xlim_max)
 
-                cid = fig.canvas.callbacks.connect("button_press_event", onclick)
-                mng = plt.get_current_fig_manager()
+                pointpick = PointPicker(fig)
 
                 plt.suptitle(tr_r.id)
                 plt.show()
 
-                x = xx[0]
-                y = yy[0]
+                x = pointpick.xx[0]
+                y = pointpick.yy[0]
 
                 if y > 0 and x < xlim_mid:
                     line = station + "\t" + c + "\tY\n"
