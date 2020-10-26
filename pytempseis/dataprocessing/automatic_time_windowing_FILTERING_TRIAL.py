@@ -19,6 +19,7 @@ class WaveArrivals:
         self.phaselist = phaselist
         if wavetype not in ["body", "p", "s", "surface"]:
             raise ValueError("wavetype must be either 'body', 'p', 's', or 'surface'")
+        self.wavetype = wavetype
 
     def body_arrivals(self, taup, ev_dep, dist_km):
         arrivals = taup_model.get_travel_times(
@@ -48,6 +49,38 @@ class WaveArrivals:
         self.start_final = self.time - self.pretime
         self.end_final = self.time + self.posttime
 
+    def rayleigh_windows(self, delta, swave_end):
+        """
+        Surface picking using envelope
+        rough determination of arrival time with min and max vs velocity
+        """
+        self.r_start1 = abs(begin) + dist_km / 4.9
+        self.r_start2 = abs(begin) + dist_km / 3.0
+
+        ir_start1 = int(self.r_start1 / delta)
+        ir_start2 = int(self.r_start2 / delta)
+
+        self.time = (
+            self.r_start1 + np.argmax(self.env[ir_start1:ir_start2]) * delta
+        )
+        self.start_final = copy(swave_end)
+
+        for i in reversed(range(int(self.time / delta))):
+            self.max = max(self.env)
+            if self.env[i] <= 0.1 * self.max:
+                self.start_final = i * delta
+                break
+
+        for i in range(int(self.time / delta), len(self.env)):
+            self.max = max(self.env)
+            if self.env[i] <= 0.02 * self.max:
+                self.end_final = i * delta
+                break
+
+        # if the starting time has not been found, then put the time window equals to 0
+        if self.start_final == swave_end:
+            self.start_final = self.end_final
+
     def absolute_times(self, starttime):
         self.start_final_abs = starttime + self.start_final
         self.end_final_abs = starttime + self.end_final
@@ -62,7 +95,7 @@ class WaveArrivals:
             extratime,
         )
 
-    def plot_arrivals(self, xlim=[0, 6000], ylabel=""):
+    def plot_traces(self, xlim=[0, 6000], ylabel=""):
         plt.plot(self.tr.times(), self.tr.data, color="black")
         plt.plot(
             self.tr_cut.times() + self.start_final - extratime,
@@ -70,14 +103,18 @@ class WaveArrivals:
             color="red",
             linewidth=2,
         )
-        plt.axvline(origintime + self.arrival - 50, color="gray", linewidth=1)
-        plt.axvline(origintime + self.arrival + 100, color="gray", linewidth=1)
+        if self.wavetype != "surface":
+            self.plot_arrivals()
         plt.ylim(-self.max * 1.1, self.max * 1.1)
         plt.xlim(xlim)
         plt.axvline(self.time, color="red", linestyle=":")
         plt.axvline(self.start_final, color="red", linewidth=2)
         plt.axvline(self.end_final, color="red", linewidth=2)
         plt.ylabel(ylabel)
+
+    def plot_arrivals(self):
+        plt.axvline(origintime + self.arrival - 50, color="gray", linewidth=1)
+        plt.axvline(origintime + self.arrival + 100, color="gray", linewidth=1)
         if hasattr(self, "extra_arrival") and hasattr(self, "extra_arrival_name"):
             for i in range(len(self.extra_arrival)):
                 plt.axvline(
@@ -199,47 +236,12 @@ for file in file_list:
     if dist_deg < 140.0 and dist_deg > 10.0:
         for wave in waves:
             if wave.wavetype == "surface":
-                continue
+                wave.rayleigh_windows(delta, s_waves.end_final)
+            else:
+                wave.body_arrivals(taup_model, ev_dep, dist_km)
+                wave.body_windows(begin, delta)
+                wave.body_refine_windows(delta)
 
-            wave.body_arrivals(taup_model, ev_dep, dist_km)
-            wave.body_windows(begin, delta)
-            wave.body_refine_windows(delta)
-
-        # ---
-        # Surface picking using envelope
-        # ---
-        # rough determination of arrival time with min and max vs velocity
-        r_start1 = abs(begin) + dist_km / 4.9
-        r_start2 = abs(begin) + dist_km / 3.0
-
-        ir_start1 = int(r_start1 / delta)
-        ir_start2 = int(r_start2 / delta)
-
-        time_rayleigh = (
-            r_start1 + np.argmax(waves["r"].env[ir_start1:ir_start2]) * delta
-        )
-        waves["r"].start_final = copy(waves["s"].end_final)
-
-        for i in reversed(range(int(time_rayleigh / delta))):
-            max_env = max(waves["r"].env)
-            if waves["r"].env[i] <= 0.1 * max_env:
-                waves["r"].start_final = i * delta
-                break
-
-        for i in range(int(time_rayleigh / delta), len(waves["r"].env)):
-            max_env = max(waves["r"].env)
-            if waves["r"].env[i] <= 0.02 * max_env:
-                waves["r"].end_final = i * delta
-                break
-
-        # if the starting time has not been found, then put the time window equals to 0
-        if waves["r"].start_final == waves["s"].end_final:
-            waves["r"].start_final = waves["r"].end_final
-
-        # ---
-        # convert relative times to absolute
-        # ---
-        for wave in waves:
             wave.absolute_times(starttime)
 
         # ---
@@ -258,15 +260,15 @@ for file in file_list:
 
         plt.figure(1, figsize=(11.69, 8.27))
         plt.subplot(311)
-        p_waves.plot_arrivals(xlim=[0, 6000], ylabel="P waves")
+        p_waves.plot_traces(xlim=[0, 6000], ylabel="P waves")
 
         plt.subplot(312)
-        s_waves.plot_arrivals(
+        s_waves.plot_traces(
             xlim=[p_waves.arrival - 400, r_waves.end_final + 2000], ylabel="S waves"
         )
 
         plt.subplot(313)
-        r_waves.plot_arrivals(
+        r_waves.plot_traces(
             xlim=[p_waves.arrival - 400, r_waves.end_final + 2000], ylabel="Surface waves"
         )
 
