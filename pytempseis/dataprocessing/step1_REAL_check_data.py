@@ -118,15 +118,12 @@ def plot_traces(tr_r, tr_s, status="", plot_folder="./", xlim_max=6000):
     plt.close()
 
 
-def check_data(event_code, database):
+def check_data(event_code, database, Tmin=35.0, Tmax=150.0):
     Data_folder = f"{database}/{event_code}/processed_data/"
     Synt_folder = f"{database}/{event_code}/synthetics/point_source"
     plot_folder = f"{Data_folder}/first_check_plots/"
     if not os.path.exists(plot_folder):
         os.mkdir(plot_folder)
-
-    Tmin = 35.0
-    Tmax = 150.0
 
     xlim_min = 0.0
     xlim_max = 6000.0
@@ -181,4 +178,6 @@ def check_data(event_code, database):
 if __name__ == "__main__":
     event_code = sys.argv[1]
     database = sys.argv[2]
-    check_data(event_code, database)
+    Tmin = 35.0
+    Tmax = 150.0
+    check_data(event_code, database, Tmin, Tmax)
