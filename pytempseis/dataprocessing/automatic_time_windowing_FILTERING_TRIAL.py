@@ -6,6 +6,7 @@ from obspy.taup import TauPyModel
 import glob
 import obspy
 import numpy as np
+from copy import copy
 from pytempseis.functions import filter_trace, distance, trim_trace_abs
 
 
@@ -23,11 +24,15 @@ class WaveArrivals:
             phase_list=self.phaselist,
             distance_in_degree=obspy.geodetics.kilometer2degrees(dist_km),
         )
-        self.arrival = tr.stats["p_arrival"] = int(arrivals[0].time)
-        self.extra_p_arrival = [int(arrivals[i].time) for i in range(1, len(arrivals))]
-        self.extra_p_arrival_name = [
+        self.arrival = int(arrivals[0].time)
+        self.extra_arrival = [int(arrivals[i].time) for i in range(1, len(arrivals))]
+        self.extra_arrival_name = [
             arrivals[i].name for i in range(1, len(arrivals))
         ]
+
+    def absolute_times(self, starttime):
+        self.start_final_abs = starttime + self.start_final
+        self.end_final_abs = starttime + self.end_final
 
 
 p_waves = WaveArrivals(
@@ -136,7 +141,7 @@ for file in file_list:
     dist_deg, dist_km = distance(st_lat, st_lon, ev_lat, ev_lon)
     print(f"Distance (deg): {dist_deg}")
     if dist_deg < 140.0 and dist_deg > 10.0:
-        for w, wave in waves:
+        for w, wave in waves.items():
             if w == "r":
                 continue
 
@@ -165,41 +170,36 @@ for file in file_list:
         ir_start1 = int(r_start1 / delta)
         ir_start2 = int(r_start2 / delta)
 
-        time_rayleigh = r_start1 + np.argmax(env_surface[ir_start1:ir_start2]) * delta
+        time_rayleigh = r_start1 + np.argmax(waves["r"].env[ir_start1:ir_start2]) * delta
+        waves["r"].start_final = copy(waves["s"].end_final)
 
-        r_start_final = s_end_final
-
-        for i in reversed(range(0, int(time_rayleigh / delta))):
-            max_env = max(env_surface)
-            if env_surface[i] <= 0.1 * max_env:
-                r_start_final = i * delta
+        for i in reversed(range(int(time_rayleigh / delta))):
+            max_env = max(waves["r"].env)
+            if waves["r"].env[i] <= 0.1 * max_env:
+                waves["r"].start_final = i * delta
                 break
 
-        for i in range(int(time_rayleigh / delta), len(env_surface)):
-            max_env = max(env_surface)
-            if env_surface[i] <= 0.02 * max_env:
-                r_end_final = i * delta
+        for i in range(int(time_rayleigh / delta), len(waves["r"].env)):
+            max_env = max(waves["r"].env)
+            if waves["r"].env[i] <= 0.02 * max_env:
+                waves["r"].end_final = i * delta
                 break
 
         # if the starting time has not been found, then put the time window equals to 0
-        if r_start_final == s_end_final:
-            r_start_final = r_end_final
+        if waves["r"].start_final == waves["s"].end_final:
+            waves["r"].start_final = waves["r"].end_final
 
         # ---
         # convert relative times to absolute
         # ---
-        p_start_final_abs = starttime + p_start_final
-        p_end_final_abs = starttime + p_end_final
-        s_start_final_abs = starttime + s_start_final
-        s_end_final_abs = starttime + s_end_final
-        r_start_final_abs = starttime + r_start_final
-        r_end_final_abs = starttime + r_end_final
+        for wave in waves.values():
+            wave.absolute_times(starttime)
 
         # ---
         # Write the picking time into a file
         # ---
-        line = f"{station}\t{channel}l\t{starttime}\t{begin}\t{origintime}\t{p_start_final_abs}\t{p_end_final_abs}\t{s_start_final_abs}\t{s_end_final_abs}\t{r_start_final_abs}\t{r_end_final_abs}\n"
-        out.write(line)
+        line = "\t".join([f"{wave.start_final_abs}\t{wave.end_final_abs}" for wave in waves.values()])
+        out.write(f"{line}\n")
 
         # ======================================================
         # cut traces
