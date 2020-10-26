@@ -22,7 +22,7 @@ class WaveArrivals:
         self.wavetype = wavetype
 
     def body_arrivals(self, taup, ev_dep, dist_km):
-        arrivals = taup_model.get_travel_times(
+        arrivals = taup.get_travel_times(
             source_depth_in_km=ev_dep,
             phase_list=self.phaselist,
             distance_in_degree=obspy.geodetics.kilometer2degrees(dist_km),
@@ -42,14 +42,13 @@ class WaveArrivals:
         Refine p and s picking using envelope inside the time window
         """
         self.time = (
-            np.argmax(abs(self.tr.data)[self.i_start: self.i_end]) * delta
-            + self.start
+            np.argmax(abs(self.tr.data)[self.i_start: self.i_end]) * delta + self.start
         )
         self.max = max(abs(self.tr.data)[self.i_start: self.i_end])
         self.start_final = self.time - self.pretime
         self.end_final = self.time + self.posttime
 
-    def rayleigh_windows(self, delta, swave_end):
+    def rayleigh_windows(self, delta, swave_end, begin, dist_km):
         """
         Surface picking using envelope
         rough determination of arrival time with min and max vs velocity
@@ -60,9 +59,7 @@ class WaveArrivals:
         ir_start1 = int(self.r_start1 / delta)
         ir_start2 = int(self.r_start2 / delta)
 
-        self.time = (
-            self.r_start1 + np.argmax(self.env[ir_start1:ir_start2]) * delta
-        )
+        self.time = self.r_start1 + np.argmax(self.env[ir_start1:ir_start2]) * delta
         self.start_final = copy(swave_end)
 
         for i in reversed(range(int(self.time / delta))):
@@ -98,7 +95,7 @@ class WaveArrivals:
     def plot_traces(self, xlim=[0, 6000], ylabel=""):
         plt.plot(self.tr.times(), self.tr.data, color="black")
         plt.plot(
-            self.tr_cut.times() + self.start_final - extratime,
+            self.tr_cut.times() + self.start_final - self.extratime,
             self.tr_cut.data,
             color="red",
             linewidth=2,
@@ -113,8 +110,8 @@ class WaveArrivals:
         plt.ylabel(ylabel)
 
     def plot_arrivals(self):
-        plt.axvline(origintime + self.arrival - 50, color="gray", linewidth=1)
-        plt.axvline(origintime + self.arrival + 100, color="gray", linewidth=1)
+        plt.axvline(self.origintime + self.arrival - 50, color="gray", linewidth=1)
+        plt.axvline(self.origintime + self.arrival + 100, color="gray", linewidth=1)
         if hasattr(self, "extra_arrival") and hasattr(self, "extra_arrival_name"):
             for i in range(len(self.extra_arrival)):
                 plt.axvline(
@@ -128,151 +125,165 @@ class WaveArrivals:
                 )
 
 
-p_waves = WaveArrivals(
-    20,
-    70,
-    100,
-    100,
-    [
-        "P",
-        "Pdiff",
-        "pP",
-        "PcP",
-        "sP",
-        "PKP",
-        "PKS",
-        "PKKP",
-        "PKP",
-        "PS",
-    ],
-    wavetype="p"
-)
-s_waves = WaveArrivals(
-    20, 100, 100, 100, ["S", "Sdiff", "pS", "SP", "sS", "PS", "SKS", "SP", "SKP"], wavetype="s"
-)
-r_waves = WaveArrivals(45, 100, 200, 400, wavetype='surface')
-waves = [p_waves, s_waves, r_waves]
-id_string = "_".join([f"{wave.Tmin}_{wave.Tmax}" for wave in waves])
+def build_figure(p_waves, s_waves, r_waves, station, channel, outfile):
+    """
+    Builds the final figure. *_waves are WaveArrival instances
+    """
+    plt.figure(1, figsize=(11.69, 8.27))
+    plt.subplot(311)
+    p_waves.plot_traces(xlim=[0, 6000], ylabel="P waves")
 
-real = True
+    plt.subplot(312)
+    s_waves.plot_traces(
+        xlim=[p_waves.arrival - 400, r_waves.end_final + 2000], ylabel="S waves"
+    )
 
-event_code = sys.argv[1]
-database = sys.argv[2]
+    plt.subplot(313)
+    r_waves.plot_traces(
+        xlim=[p_waves.arrival - 400, r_waves.end_final + 2000], ylabel="Surface waves"
+    )
 
-folder = f"{database}/{event_code}"
-cmt_file = f"{folder}/{event_code}"
+    plt.suptitle(f"Station: {station} Channel: {channel}")
+    plt.savefig(outfile)
+    plt.close()
 
-if real:
-    channel = "BH"
-    data_folder = f"{folder}/data_ready2use/"
-else:
-    channel = "MX"
-    data_folder = f"{folder}/processed_data/"
 
-plot_folder = f"{folder}/plots_picking_{id_string}/"
-if not os.path.exists(plot_folder):
-    os.mkdir(plot_folder)
+def get_datafiles(folder, real=True):
+    if real:
+        channel = "BH"
+        data_folder = f"{folder}/data_ready2use/"
+        file_list = sorted(glob.glob(f"{data_folder}*{channel}Z"))
+        file_list += sorted(glob.glob(f"{data_folder}*{channel}R"))
+        file_list += sorted(glob.glob(f"{data_folder}*{channel}T"))
+    else:
+        channel = "MX"
+        data_folder = f"{folder}/processed_data/"
+        file_list = sorted(glob.glob(f"{data_folder}*{channel}Z*.corr.int"))
+        file_list += sorted(glob.glob(f"{data_folder}*{channel}R*.corr.int"))
+        file_list += sorted(glob.glob(f"{data_folder}*{channel}T*.corr.int"))
+    return file_list
 
-lines = open(cmt_file).readlines()
-ev_lat = float(lines[4].split()[1])
-ev_lon = float(lines[5].split()[1])
-ev_dep = float(lines[6].split()[1])
 
-taup_model = TauPyModel(model="iasp91")
+def automatic_time_windowing(event_code, database, waves, real=True):
+    id_string = "_".join([f"{wave.Tmin}_{wave.Tmax}" for wave in waves])
+    folder = f"{database}/{event_code}"
+    cmt_file = f"{folder}/{event_code}"
 
-sta_lines = open(f"{database}/STATIONS").readlines()
+    plot_folder = f"{folder}/plots_picking_{id_string}/"
+    if not os.path.exists(plot_folder):
+        os.mkdir(plot_folder)
 
-if real:
-    file_list = sorted(glob.glob(f"{data_folder}*{channel}Z"))
-    file_list += sorted(glob.glob(f"{data_folder}*{channel}R"))
-    file_list += sorted(glob.glob(f"{data_folder}*{channel}T"))
-else:
-    file_list = sorted(glob.glob(f"{data_folder}*{channel}Z*.corr.int"))
-    file_list += sorted(glob.glob(f"{data_folder}*{channel}R*.corr.int"))
-    file_list += sorted(glob.glob(f"{data_folder}*{channel}T*.corr.int"))
+    lines = open(cmt_file).readlines()
+    ev_lat = float(lines[4].split()[1])
+    ev_lon = float(lines[5].split()[1])
+    ev_dep = float(lines[6].split()[1])
 
-out = open(
-    f"{folder}/picking_times_{id_string}.txt",
-    "w",
-)
-for wave in waves:
-    out.write(f"Period bands {wave.wavetype}: {wave.Tmin}\t{wave.Tmax}\n")
-out.write(f"Ev lat: {ev_lat}\n")
-out.write(f"Ev lon: {ev_lon}\n")
-out.write(f"Ev dep: {ev_dep}\n")
-out.write(
-    "Station\tChannel\tstarttime\tbegin\torigintime\tp start\tp end\ts start\ts end\tr start\tr end\n"
-)
-for file in file_list:
-    tr = read(file)[0]
+    taup_model = TauPyModel(model="iasp91")
 
-    for wave in waves:
-        trace = tr.copy()
-        wave.tr = filter_trace(trace, wave.Tmin, wave.Tmax)
-        wave.env = obspy.signal.filter.envelope(wave.tr.data)
+    sta_lines = open(f"{database}/STATIONS").readlines()
+    file_list = get_datafiles(folder, real)
 
-    tr.stats["snr"] = []
-    tr.stats["cutpoints_in_s"] = []
-    tr.stats["cutpoints_noise_in_s"] = []
-    tr.stats["phase"] = []
-    starttime = tr.stats.starttime
-    begin = float(tr.stats.sac.get("b"))
-    origintime = starttime - begin
-    endtime = tr.stats.endtime
-    st_lat = tr.stats["sac"]["stla"]
-    st_lon = tr.stats["sac"]["stlo"]
-
-    station = tr.stats.station
-    for line in sta_lines:
-        if station == line.split()[0]:
-            print(line)
-            st_lat = float(line.split()[2])
-            st_lon = float(line.split()[3])
-
-    delta = tr.stats.delta
-    channel = tr.stats.channel
-    dist_deg, dist_km = distance(st_lat, st_lon, ev_lat, ev_lon)
-    print(f"Distance (deg): {dist_deg}")
-    if dist_deg < 140.0 and dist_deg > 10.0:
+    with open(f"{folder}/picking_times_{id_string}.txt", "w") as out:
         for wave in waves:
-            if wave.wavetype == "surface":
-                wave.rayleigh_windows(delta, s_waves.end_final)
-            else:
-                wave.body_arrivals(taup_model, ev_dep, dist_km)
-                wave.body_windows(begin, delta)
-                wave.body_refine_windows(delta)
-
-            wave.absolute_times(starttime)
-
-        # ---
-        # Write the picking time into a file
-        # ---
-        line = "\t".join(
-            [f"{wave.start_final_abs}\t{wave.end_final_abs}" for wave in waves]
+            out.write(f"Period bands {wave.wavetype}: {wave.Tmin}\t{wave.Tmax}\n")
+        out.write(f"Ev lat: {ev_lat}\n")
+        out.write(f"Ev lon: {ev_lon}\n")
+        out.write(f"Ev dep: {ev_dep}\n")
+        out.write(
+            "Station\tChannel\tstarttime\tbegin\torigintime\tp start\tp end\ts start\ts end\tr start\tr end\n"
         )
-        out.write(f"{station}\t{channel}\t{starttime}\t{begin}\t{origintime}\t{line}\n")
+        for file in file_list:
+            tr = read(file)[0]
+            tr.stats["snr"] = []
+            tr.stats["cutpoints_in_s"] = []
+            tr.stats["cutpoints_noise_in_s"] = []
+            tr.stats["phase"] = []
+            starttime = tr.stats.starttime
+            begin = float(tr.stats.sac.get("b"))
+            origintime = starttime - begin
+            endtime = tr.stats.endtime
 
-        # ======================================================
-        # cut traces
-        extratime = 800.0
-        for wave in waves:
-            wave.cut_trace(extratime)
+            st_lat = tr.stats["sac"]["stla"]
+            st_lon = tr.stats["sac"]["stlo"]
+            station = tr.stats.station
+            for line in sta_lines:
+                if station == line.split()[0]:
+                    print(line)
+                    st_lat = float(line.split()[2])
+                    st_lon = float(line.split()[3])
 
-        plt.figure(1, figsize=(11.69, 8.27))
-        plt.subplot(311)
-        p_waves.plot_traces(xlim=[0, 6000], ylabel="P waves")
+            delta = tr.stats.delta
+            channel = tr.stats.channel
+            dist_deg, dist_km = distance(st_lat, st_lon, ev_lat, ev_lon)
+            print(f"Distance (deg): {dist_deg}")
 
-        plt.subplot(312)
-        s_waves.plot_traces(
-            xlim=[p_waves.arrival - 400, r_waves.end_final + 2000], ylabel="S waves"
-        )
+            if dist_deg < 140.0 and dist_deg > 10.0:
+                for wave in waves:
+                    trace = tr.copy()
+                    wave.tr = filter_trace(trace, wave.Tmin, wave.Tmax)
+                    wave.env = obspy.signal.filter.envelope(wave.tr.data)
 
-        plt.subplot(313)
-        r_waves.plot_traces(
-            xlim=[p_waves.arrival - 400, r_waves.end_final + 2000], ylabel="Surface waves"
-        )
+                    wave.starttime = starttime
+                    wave.begin = begin
+                    wave.origintime = origintime
+                    wave.endtime = endtime
+                    if wave.wavetype == "surface":
+                        wave.rayleigh_windows(delta, s_waves.end_final, begin, dist_km)
+                    else:
+                        wave.body_arrivals(taup_model, ev_dep, dist_km)
+                        wave.body_windows(begin, delta)
+                        wave.body_refine_windows(delta)
 
-        plt.suptitle(f"Station: {station} Channel: {channel}")
-        plt.savefig(f"{plot_folder}/{station}_{channel}_picking.png")
-        plt.close()
-out.close()
+                    wave.absolute_times(starttime)
+                    wave.cut_trace(800)
+
+                line = "\t".join(
+                    [f"{wave.start_final_abs}\t{wave.end_final_abs}" for wave in waves]
+                )
+                out.write(
+                    f"{station}\t{channel}\t{starttime}\t{begin}\t{origintime}\t{line}\n"
+                )
+
+                build_figure(
+                    p_waves,
+                    s_waves,
+                    r_waves,
+                    station,
+                    channel,
+                    f"{plot_folder}/{station}_{channel}_picking.png",
+                )
+
+
+if __name__ == "__main__":
+    event_code = sys.argv[1]
+    database = sys.argv[2]
+
+    p_waves = WaveArrivals(
+        20,
+        70,
+        100,
+        100,
+        [
+            "P",
+            "Pdiff",
+            "pP",
+            "PcP",
+            "sP",
+            "PKP",
+            "PKS",
+            "PKKP",
+            "PKP",
+            "PS",
+        ],
+        wavetype="p",
+    )
+    s_waves = WaveArrivals(
+        20,
+        100,
+        100,
+        100,
+        ["S", "Sdiff", "pS", "SP", "sS", "PS", "SKS", "SP", "SKP"],
+        wavetype="s",
+    )
+    r_waves = WaveArrivals(45, 100, 200, 400, wavetype="surface")
+    waves = [p_waves, s_waves, r_waves]
