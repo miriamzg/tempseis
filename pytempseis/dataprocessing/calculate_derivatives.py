@@ -5,18 +5,6 @@ from obspy.core import read
 import glob
 
 
-event_code = sys.argv[1]
-channel = "MX"
-
-# frequency band for first filtering
-Tmin = 17.0
-Tmax = 300.0
-
-sampling_rate = 0.5  # Hz
-synthetics_folder = f"../database/{event_code}/synthetics/"
-out_folder = f"../database/{event_code}/kernels"
-
-
 def calc_derivatives(
     Tmin, Tmax, station, comp, sampling_rate, derivatives_folder, out_folder
 ):
@@ -133,29 +121,38 @@ def calc_derivatives(
     return
 
 
-# =================================================================================================================================
+def calculate_derivatives(event_code, database, Tmin, Tmax, sampling_rate=0.5):
+    synthetics_folder = f"{database}/{event_code}/synthetics/"
+    out_folder = f"{database}/{event_code}/kernels"
+    if not os.path.exists(out_folder):
+        os.system(f"mkdir {out_folder}")
+
+    station_comp = []
+    filelist = glob.glob(f"{synthetics_folder}point_source/*sem.sac")
+    for fl in filelist:
+        station = fl.split("/")[-1].split(".")[1]
+        comp = fl.split("/")[-1].split(".")[2][2:3]
+        station_comp.append([station, comp])
+
+    # =====================================================================
+    # 	calculate derivatives
+    # =====================================================================
+    for st_cmp in station_comp:
+        station, comp = st_cmp
+        if comp in ["Z", "R", "T"]:
+            print(f"Calculating derivatives  {station} {comp}")
+            calc_derivatives(
+                Tmin, Tmax, station, comp, sampling_rate, synthetics_folder, out_folder
+            )
 
 
-os.system(f"mkdir {out_folder}")
+if __name__ == "__main__":
+    event_code = sys.argv[1]
+    database = sys.argv[2]
 
-station_comp = []
-filelist = glob.glob(f"{synthetics_folder}point_source/*sem.sac")
-for fl in filelist:
-    station = fl.split("/")[-1].split(".")[1]
-    comp = fl.split("/")[-1].split(".")[2][2:3]
-    station_comp.append([station, comp])
+    # frequency band for first filtering
+    Tmin = 17.0
+    Tmax = 300.0
+    sampling_rate = 0.5  # Hz
 
-
-# =====================================================================
-# 	calculate derivatives
-# =====================================================================
-for i in range(0, len(station_comp)):
-    station = station_comp[i][0]
-    comp = station_comp[i][1]
-
-    if comp in ["Z", "R", "T"]:
-        print(f"Calculating derivatives  {station} {comp}")
-
-        calc_derivatives(
-            Tmin, Tmax, station, comp, sampling_rate, synthetics_folder, out_folder
-        )
+    calculate_derivatives(event_code, database, Tmin, Tmax, sampling_rate)
