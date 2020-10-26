@@ -3,16 +3,7 @@ import sys
 from obspy.core import read
 import glob
 import matplotlib.pylab as plt
-
-
-def filter_trace(trace, Tmin, Tmax):
-    trace.detrend("demean")
-    trace.taper(0.05, type="hann")
-    trace.filter(
-        "bandpass", freqmin=1 / Tmax, freqmax=1 / Tmin, corners=4, zerophase=True
-    )
-    trace.taper(0.05, type="hann")
-    return trace
+from pytempseis.functions import filter_trace
 
 
 class PointPicker:
