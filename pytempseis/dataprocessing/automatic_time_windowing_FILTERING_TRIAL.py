@@ -9,6 +9,53 @@ import numpy as np
 from pytempseis.functions import filter_trace, distance, trim_trace_abs
 
 
+class WaveArrivals:
+    def __init__(self, Tmin, Tmax, pretime, posttime, phaselist=[]):
+        self.Tmin = Tmin
+        self.Tmax = Tmax
+        self.pretime = pretime
+        self.posttime = posttime
+        self.phaselist = phaselist
+
+    def body_arrivals(self, taup, ev_dep, dist_km):
+        arrivals = taup_model.get_travel_times(
+            source_depth_in_km=ev_dep,
+            phase_list=self.phaselist,
+            distance_in_degree=obspy.geodetics.kilometer2degrees(dist_km),
+        )
+        self.arrival = tr.stats["p_arrival"] = int(arrivals[0].time)
+        self.extra_p_arrival = [int(arrivals[i].time) for i in range(1, len(arrivals))]
+        self.extra_p_arrival_name = [
+            arrivals[i].name for i in range(1, len(arrivals))
+        ]
+
+
+p_waves = WaveArrivals(
+    20,
+    70,
+    100,
+    100,
+    [
+        "P",
+        "Pdiff",
+        "pP",
+        "PcP",
+        "sP",
+        "PKP",
+        "PKS",
+        "PKKP",
+        "PKP",
+        "PS",
+    ],
+)
+s_waves = WaveArrivals(
+    20, 100, 100, 100, ["S", "Sdiff", "pS", "SP", "sS", "PS", "SKS", "SP", "SKP"]
+)
+r_waves = WaveArrivals(45, 100, 200, 400)
+waves = {"p": p_waves, "s": s_waves, "r": r_waves}
+
+id_string = "_".join([f"{waves[w].Tmin}_{waves[w].Tmax}" for w in waves])
+
 real = True
 
 event_code = sys.argv[1]
@@ -24,26 +71,7 @@ else:
     channel = "MX"
     data_folder = f"{folder}/processed_data/"
 
-Tmin_p = 20  # 25
-Tmax_p = 70  # 60
-
-Tmin_s = 20
-Tmax_s = 100
-
-Tmin_r = 45  # 125
-Tmax_r = 100  # 180
-
-pretime_p = 100
-posttime_p = 100
-
-pretime_s = 100
-posttime_s = 100
-
-pretime_r = 2 * Tmax_r  # 500
-posttime_r = 4 * Tmax_r  # 500
-
-
-plot_folder = f"{folder}/plots_picking_{Tmin_p}_{Tmax_p}_{Tmin_s}_{Tmax_s}_{Tmin_r}_{Tmax_r}/"
+plot_folder = f"{folder}/plots_picking_{id_string}/"
 if not os.path.exists(plot_folder):
     os.mkdir(plot_folder)
 
@@ -66,12 +94,11 @@ else:
     file_list += sorted(glob.glob(f"{data_folder}*{channel}T*.corr.int"))
 
 out = open(
-    f"{folder}/picking_times_{Tmin_p}_{Tmax_p}_{Tmin_s}_{Tmax_s}_{Tmin_r}_{Tmax_r}.txt",
+    f"{folder}/picking_times_{id_string}.txt",
     "w",
 )
-out.write(f"Period bands s: {Tmin_s}\t{Tmax_s}\n")
-out.write(f"Period bands p: {Tmin_p}\t{Tmax_p}\n")
-out.write(f"Period bands r: {Tmin_r}\t{Tmax_r}\n")
+for w, wave in waves.items():
+    out.write(f"Period bands {w}: {wave.Tmin}\t{wave.Tmax}\n")
 out.write(f"Ev lat: {ev_lat}\n")
 out.write(f"Ev lon: {ev_lon}\n")
 out.write(f"Ev dep: {ev_dep}\n")
@@ -81,18 +108,11 @@ out.write(
 for file in file_list:
     tr = read(file)[0]
 
-    tr_p = tr.copy()
-    tr_p = filter_trace(tr_p, float(Tmin_p), float(Tmax_p))
+    for wave in waves.values():
+        trace = tr.copy()
+        wave.tr = filter_trace(trace, wave.Tmin, wave.Tmax)
+        wave.env = obspy.signal.filter.envelope(wave.tr.data)
 
-    tr_s = tr.copy()
-    tr_s = filter_trace(tr_s, float(Tmin_s), float(Tmax_s))
-
-    tr_r = tr.copy()
-    tr_r = filter_trace(tr_r, float(Tmin_r), float(Tmax_r))
-
-    env_p = obspy.signal.filter.envelope(tr_p.data)
-    env_s = obspy.signal.filter.envelope(tr_s.data)
-    env_surface = obspy.signal.filter.envelope(tr_r.data)
     tr.stats["snr"] = []
     tr.stats["cutpoints_in_s"] = []
     tr.stats["cutpoints_noise_in_s"] = []
@@ -116,68 +136,24 @@ for file in file_list:
     dist_deg, dist_km = distance(st_lat, st_lon, ev_lat, ev_lon)
     print(f"Distance (deg): {dist_deg}")
     if dist_deg < 140.0 and dist_deg > 10.0:
-        arrivals_p = taup_model.get_travel_times(
-            source_depth_in_km=ev_dep,
-            phase_list=[
-                "P",
-                "Pdiff",
-                "pP",
-                "PcP",
-                "sP",
-                "PKP",
-                "PKS",
-                "PKKP",
-                "PKP",
-                "PS",
-            ],
-            distance_in_degree=obspy.geodetics.kilometer2degrees(dist_km),
-        )
-        p_arrival = tr.stats["p_arrival"] = int(arrivals_p[0].time)
-        extra_p_arrival = []
-        extra_p_arrival_name = []
-        for i in range(1, len(arrivals_p)):
-            extra_p_arrival.append(int(arrivals_p[i].time))
-            extra_p_arrival_name.append((arrivals_p[i].name))
+        for w, wave in waves:
+            if w == "r":
+                continue
 
-        arrivals_s = taup_model.get_travel_times(
-            source_depth_in_km=ev_dep,
-            phase_list=["S", "Sdiff", "pS", "SP", "sS", "PS", "SKS", "SP", "SKP"],
-            distance_in_degree=obspy.geodetics.kilometer2degrees(dist_km),
-        )
-        s_arrival = tr.stats["s_arrival"] = int(arrivals_s[0].time)
-        extra_s_arrival = []
-        extra_s_arrival_name = []
-        for i in range(1, len(arrivals_s)):
-            extra_s_arrival.append(int(arrivals_s[i].time))
-            extra_s_arrival_name.append((arrivals_s[i].name))
+            wave.body_arrivals(taup_model, ev_dep, dist_km)
+            wave.start = abs(begin) + wave.arrival - wave.pretime
+            wave.end = abs(begin) + wave.arrival + wave.posttime
+            wave.i_start = max(0, int(wave.start / delta))
+            wave.i_end = int(wave.end / delta)
 
-        p_start = abs(begin) + p_arrival - pretime_p
-        p_end = abs(begin) + p_arrival + posttime_p
-        i_p_start = int(p_start / delta)
-        i_p_end = int(p_end / delta)
+            # ---
+            # Refine p and s picking using envelope inside the time window
+            # ---
 
-        s_start = abs(begin) + s_arrival - pretime_s
-        s_end = abs(begin) + s_arrival + posttime_s
-        i_s_start = int(s_start / delta)
-        i_s_end = int(s_end / delta)
-
-        # ---
-        # Refine p and s picking using envelope inside the time window
-        # ---
-        if i_p_start < 0:
-            i_p_start = 0
-        if i_s_start < 0:
-            i_s_start = 0
-
-        p_time = np.argmax(abs(tr_p.data)[i_p_start:i_p_end]) * delta + p_start
-        p_max = max(abs(tr_p.data)[i_p_start:i_p_end])
-        p_start_final = p_time - pretime_p
-        p_end_final = p_time + posttime_p
-
-        s_time = np.argmax(abs(tr_s.data)[i_s_start:i_s_end]) * delta + s_start
-        s_max = max(abs(tr_s.data)[i_s_start:i_s_end])
-        s_start_final = s_time - pretime_s
-        s_end_final = s_time + posttime_s
+            wave.time = np.argmax(abs(wave.tr.data)[wave.i_start: wave.i_end]) * delta + wave.start
+            wave.max = max(abs(wave.tr.data)[wave.i_start: wave.i_end])
+            wave.start_final = wave.time - wave.pretime
+            wave.end_final = wave.time + wave.posttime
 
         # ---
         # Surface picking using envelope
@@ -222,9 +198,7 @@ for file in file_list:
         # ---
         # Write the picking time into a file
         # ---
-        line = (
-            f"{station}\t{channel}l\t{starttime}\t{begin}\t{origintime}\t{p_start_final_abs}\t{p_end_final_abs}\t{s_start_final_abs}\t{s_end_final_abs}\t{r_start_final_abs}\t{r_end_final_abs}\n"
-        )
+        line = f"{station}\t{channel}l\t{starttime}\t{begin}\t{origintime}\t{p_start_final_abs}\t{p_end_final_abs}\t{s_start_final_abs}\t{s_end_final_abs}\t{r_start_final_abs}\t{r_end_final_abs}\n"
         out.write(line)
 
         # ======================================================
