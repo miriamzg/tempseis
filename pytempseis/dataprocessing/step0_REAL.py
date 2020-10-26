@@ -2,6 +2,7 @@ import os
 import sys
 import glob
 from obspy.core import read
+from pytempseis import _lib
 
 
 def preprocessing(Event_code, database):
@@ -16,8 +17,6 @@ def preprocessing(Event_code, database):
     if not os.path.exists(out_folder):
         print(f"Making output directory {out_folder}")
         os.mkdir(out_folder)
-
-    perl_dir = f"{os.path.dirname(os.path.abspath(__file__))}/../../lib/seis_process/bin"
 
     sampling_rate = 0.5
 
@@ -46,15 +45,15 @@ def preprocessing(Event_code, database):
     # apply instrument correction
     CMT_folder = f"{Data_folder}/../"
     CMT_file = CMT_folder + Event_code
-    command = f"perl {perl_dir}/process_data.pl -x corr -i -m {CMT_file} -s 2 -t 5/500 {Data_folder}*.SAC"
+    command = f"perl {_lib}/process_data.pl -x corr -i -m {CMT_file} -s 2 -t 5/500 {Data_folder}*.SAC"
     os.system(command)
 
     # rotate 12 to RT
-    command = f"perl {perl_dir}/rotate.pl {Data_folder}*BH1*.corr"
+    command = f"perl {_lib}/rotate.pl {Data_folder}*BH1*.corr"
     os.system(command)
 
     # rotate NE to RT
-    command = f"perl {perl_dir}/rotate.pl {Data_folder}*BHE*.corr"
+    command = f"perl {_lib}/rotate.pl {Data_folder}*BHE*.corr"
     os.system(command)
 
     # Rename files
