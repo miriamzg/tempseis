@@ -78,18 +78,18 @@ class WaveArrivals:
         if self.start_final == swave_end:
             self.start_final = self.end_final
 
-    def absolute_times(self, starttime):
-        self.start_final_abs = starttime + self.start_final
-        self.end_final_abs = starttime + self.end_final
+    def absolute_times(self):
+        self.start_final_abs = self.tr.stats.starttime + self.start_final
+        self.end_final_abs = self.tr.stats.starttime + self.end_final
 
-    def cut_trace(self, extratime):
+    def cut_trace(self):
         self.tr_cut = trim_trace_abs(
             self.tr,
             self.tr.stats.starttime,
             self.start_final_abs,
             self.end_final_abs,
             self.Tmax,
-            extratime,
+            self.extratime,
         )
 
     def plot_traces(self, xlim=[0, 6000], ylabel=""):
@@ -202,6 +202,7 @@ def automatic_time_windowing(event_code, database, waves, real=True):
             begin = float(tr.stats.sac.get("b"))
             origintime = starttime - begin
             endtime = tr.stats.endtime
+            extratime = 8000.0
 
             st_lat = tr.stats["sac"]["stla"]
             st_lon = tr.stats["sac"]["stlo"]
@@ -223,10 +224,9 @@ def automatic_time_windowing(event_code, database, waves, real=True):
                     wave.tr = filter_trace(trace, wave.Tmin, wave.Tmax)
                     wave.env = obspy.signal.filter.envelope(wave.tr.data)
 
-                    wave.starttime = starttime
                     wave.begin = begin
                     wave.origintime = origintime
-                    wave.endtime = endtime
+                    wave.extratime = extratime
                     if wave.wavetype == "surface":
                         wave.rayleigh_windows(delta, s_waves.end_final, begin, dist_km)
                     else:
@@ -234,8 +234,8 @@ def automatic_time_windowing(event_code, database, waves, real=True):
                         wave.body_windows(begin, delta)
                         wave.body_refine_windows(delta)
 
-                    wave.absolute_times(starttime)
-                    wave.cut_trace(800)
+                    wave.absolute_times()
+                    wave.cut_trace()
 
                 line = "\t".join(
                     [f"{wave.start_final_abs}\t{wave.end_final_abs}" for wave in waves]
@@ -287,3 +287,5 @@ if __name__ == "__main__":
     )
     r_waves = WaveArrivals(45, 100, 200, 400, wavetype="surface")
     waves = [p_waves, s_waves, r_waves]
+    real = True
+    automatic_time_windowing(event_code, database, waves, real)
