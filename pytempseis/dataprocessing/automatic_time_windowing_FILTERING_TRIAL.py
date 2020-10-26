@@ -11,12 +11,14 @@ from pytempseis.functions import filter_trace, distance, trim_trace_abs
 
 
 class WaveArrivals:
-    def __init__(self, Tmin, Tmax, pretime, posttime, phaselist=[]):
+    def __init__(self, Tmin, Tmax, pretime, posttime, phaselist=[], wavetype="body"):
         self.Tmin = Tmin
         self.Tmax = Tmax
         self.pretime = pretime
         self.posttime = posttime
         self.phaselist = phaselist
+        if wavetype not in ["body", "p", "s", "surface"]:
+            raise ValueError("wavetype must be either 'body', 'p', 's', or 'surface'")
 
     def body_arrivals(self, taup, ev_dep, dist_km):
         arrivals = taup_model.get_travel_times(
@@ -26,13 +28,67 @@ class WaveArrivals:
         )
         self.arrival = int(arrivals[0].time)
         self.extra_arrival = [int(arrivals[i].time) for i in range(1, len(arrivals))]
-        self.extra_arrival_name = [
-            arrivals[i].name for i in range(1, len(arrivals))
-        ]
+        self.extra_arrival_name = [arrivals[i].name for i in range(1, len(arrivals))]
+
+    def body_windows(self, begin, delta):
+        self.start = abs(begin) + self.arrival - self.pretime
+        self.end = abs(begin) + self.arrival + self.posttime
+        self.i_start = max(0, int(self.start / delta))
+        self.i_end = int(self.end / delta)
+
+    def body_refine_windows(self, delta):
+        """
+        Refine p and s picking using envelope inside the time window
+        """
+        self.time = (
+            np.argmax(abs(self.tr.data)[self.i_start: self.i_end]) * delta
+            + self.start
+        )
+        self.max = max(abs(self.tr.data)[self.i_start: self.i_end])
+        self.start_final = self.time - self.pretime
+        self.end_final = self.time + self.posttime
 
     def absolute_times(self, starttime):
         self.start_final_abs = starttime + self.start_final
         self.end_final_abs = starttime + self.end_final
+
+    def cut_trace(self, extratime):
+        self.tr_cut = trim_trace_abs(
+            self.tr,
+            self.tr.stats.starttime,
+            self.start_final_abs,
+            self.end_final_abs,
+            self.Tmax,
+            extratime,
+        )
+
+    def plot_arrivals(self, xlim=[0, 6000], ylabel=""):
+        plt.plot(self.tr.times(), self.tr.data, color="black")
+        plt.plot(
+            self.tr_cut.times() + self.start_final - extratime,
+            self.tr_cut.data,
+            color="red",
+            linewidth=2,
+        )
+        plt.axvline(origintime + self.arrival - 50, color="gray", linewidth=1)
+        plt.axvline(origintime + self.arrival + 100, color="gray", linewidth=1)
+        plt.ylim(-self.max * 1.1, self.max * 1.1)
+        plt.xlim(xlim)
+        plt.axvline(self.time, color="red", linestyle=":")
+        plt.axvline(self.start_final, color="red", linewidth=2)
+        plt.axvline(self.end_final, color="red", linewidth=2)
+        plt.ylabel(ylabel)
+        if hasattr(self, "extra_arrival") and hasattr(self, "extra_arrival_name"):
+            for i in range(len(self.extra_arrival)):
+                plt.axvline(
+                    self.extra_arrival[i], color="blue", linestyle=":", linewidth=2.5
+                )
+                plt.text(
+                    self.extra_arrival[i],
+                    self.max * 1.2,
+                    str(self.extra_arrival_name[i]),
+                    rotation=90,
+                )
 
 
 p_waves = WaveArrivals(
@@ -52,14 +108,14 @@ p_waves = WaveArrivals(
         "PKP",
         "PS",
     ],
+    wavetype="p"
 )
 s_waves = WaveArrivals(
-    20, 100, 100, 100, ["S", "Sdiff", "pS", "SP", "sS", "PS", "SKS", "SP", "SKP"]
+    20, 100, 100, 100, ["S", "Sdiff", "pS", "SP", "sS", "PS", "SKS", "SP", "SKP"], wavetype="s"
 )
-r_waves = WaveArrivals(45, 100, 200, 400)
-waves = {"p": p_waves, "s": s_waves, "r": r_waves}
-
-id_string = "_".join([f"{waves[w].Tmin}_{waves[w].Tmax}" for w in waves])
+r_waves = WaveArrivals(45, 100, 200, 400, wavetype='surface')
+waves = [p_waves, s_waves, r_waves]
+id_string = "_".join([f"{wave.Tmin}_{wave.Tmax}" for wave in waves])
 
 real = True
 
@@ -102,8 +158,8 @@ out = open(
     f"{folder}/picking_times_{id_string}.txt",
     "w",
 )
-for w, wave in waves.items():
-    out.write(f"Period bands {w}: {wave.Tmin}\t{wave.Tmax}\n")
+for wave in waves:
+    out.write(f"Period bands {wave.wavetype}: {wave.Tmin}\t{wave.Tmax}\n")
 out.write(f"Ev lat: {ev_lat}\n")
 out.write(f"Ev lon: {ev_lon}\n")
 out.write(f"Ev dep: {ev_dep}\n")
@@ -113,7 +169,7 @@ out.write(
 for file in file_list:
     tr = read(file)[0]
 
-    for wave in waves.values():
+    for wave in waves:
         trace = tr.copy()
         wave.tr = filter_trace(trace, wave.Tmin, wave.Tmax)
         wave.env = obspy.signal.filter.envelope(wave.tr.data)
@@ -141,24 +197,13 @@ for file in file_list:
     dist_deg, dist_km = distance(st_lat, st_lon, ev_lat, ev_lon)
     print(f"Distance (deg): {dist_deg}")
     if dist_deg < 140.0 and dist_deg > 10.0:
-        for w, wave in waves.items():
-            if w == "r":
+        for wave in waves:
+            if wave.wavetype == "surface":
                 continue
 
             wave.body_arrivals(taup_model, ev_dep, dist_km)
-            wave.start = abs(begin) + wave.arrival - wave.pretime
-            wave.end = abs(begin) + wave.arrival + wave.posttime
-            wave.i_start = max(0, int(wave.start / delta))
-            wave.i_end = int(wave.end / delta)
-
-            # ---
-            # Refine p and s picking using envelope inside the time window
-            # ---
-
-            wave.time = np.argmax(abs(wave.tr.data)[wave.i_start: wave.i_end]) * delta + wave.start
-            wave.max = max(abs(wave.tr.data)[wave.i_start: wave.i_end])
-            wave.start_final = wave.time - wave.pretime
-            wave.end_final = wave.time + wave.posttime
+            wave.body_windows(begin, delta)
+            wave.body_refine_windows(delta)
 
         # ---
         # Surface picking using envelope
@@ -170,7 +215,9 @@ for file in file_list:
         ir_start1 = int(r_start1 / delta)
         ir_start2 = int(r_start2 / delta)
 
-        time_rayleigh = r_start1 + np.argmax(waves["r"].env[ir_start1:ir_start2]) * delta
+        time_rayleigh = (
+            r_start1 + np.argmax(waves["r"].env[ir_start1:ir_start2]) * delta
+        )
         waves["r"].start_final = copy(waves["s"].end_final)
 
         for i in reversed(range(int(time_rayleigh / delta))):
@@ -192,112 +239,36 @@ for file in file_list:
         # ---
         # convert relative times to absolute
         # ---
-        for wave in waves.values():
+        for wave in waves:
             wave.absolute_times(starttime)
 
         # ---
         # Write the picking time into a file
         # ---
-        line = "\t".join([f"{wave.start_final_abs}\t{wave.end_final_abs}" for wave in waves.values()])
-        out.write(f"{line}\n")
+        line = "\t".join(
+            [f"{wave.start_final_abs}\t{wave.end_final_abs}" for wave in waves]
+        )
+        out.write(f"{station}\t{channel}\t{starttime}\t{begin}\t{origintime}\t{line}\n")
 
         # ======================================================
         # cut traces
         extratime = 800.0
-        tr_cut_p = trim_trace_abs(
-            tr_p,
-            tr_p.stats.starttime,
-            p_start_final_abs,
-            p_end_final_abs,
-            Tmax_p,
-            extratime,
-        )
-        tr_cut_s = trim_trace_abs(
-            tr_s,
-            tr_s.stats.starttime,
-            s_start_final_abs,
-            s_end_final_abs,
-            Tmax_s,
-            extratime,
-        )
-        tr_cut_r = trim_trace_abs(
-            tr_r,
-            tr_r.stats.starttime,
-            r_start_final_abs,
-            r_end_final_abs,
-            Tmax_r,
-            extratime,
-        )
+        for wave in waves:
+            wave.cut_trace(extratime)
 
         plt.figure(1, figsize=(11.69, 8.27))
         plt.subplot(311)
-        plt.plot(tr_p.times(), tr_p.data, color="black")
-        plt.plot(
-            tr_cut_p.times() + p_start_final - extratime,
-            tr_cut_p.data,
-            color="red",
-            linewidth=2,
-        )
-        plt.axvline(origintime + p_arrival - 50, color="gray", linewidth=1)
-        plt.axvline(origintime + p_arrival + 100, color="gray", linewidth=1)
-        plt.ylim(-p_max * 1.1, p_max * 1.1)
-        plt.xlim(p_arrival - 400, r_end_final + 2000)
-        plt.xlim(0, 6000)
-        plt.axvline(p_time, color="red", linestyle=":")
-        plt.axvline(p_start_final, color="red", linewidth=2)
-        plt.axvline(p_end_final, color="red", linewidth=2)
-        plt.ylabel("P waves")
-        for i in range(1, len(extra_p_arrival)):
-            plt.axvline(extra_p_arrival[i], color="blue", linestyle=":", linewidth=2.5)
-            plt.text(
-                extra_p_arrival[i],
-                p_max * 1.5,
-                str(extra_p_arrival_name[i]),
-                rotation=90,
-            )
-            print(extra_p_arrival_name[i])
+        p_waves.plot_arrivals(xlim=[0, 6000], ylabel="P waves")
 
         plt.subplot(312)
-        plt.plot(tr_s.times(), tr_s.data, color="black", zorder=0)
-        plt.plot(
-            tr_cut_s.times() + s_start_final - extratime,
-            tr_cut_s.data,
-            color="red",
-            linewidth=2,
+        s_waves.plot_arrivals(
+            xlim=[p_waves.arrival - 400, r_waves.end_final + 2000], ylabel="S waves"
         )
-        plt.axvline(s_arrival - 50, color="gray", linewidth=1)
-        plt.axvline(s_arrival + 150, color="gray", linewidth=1)
-        plt.xlim(p_arrival - 400, r_end_final + 2000)
-        plt.ylim(-s_max * 1.1, s_max * 1.1)
-        plt.axvline(s_time, color="red", linestyle=":")
-        plt.axvline(s_start_final, color="red", linewidth=2)
-        plt.axvline(s_end_final, color="red", linewidth=2)
-        plt.ylabel("S waves")
-        for i in range(1, len(extra_s_arrival)):
-            plt.axvline(extra_s_arrival[i], color="blue", linestyle=":", linewidth=2.5)
-            plt.text(
-                extra_s_arrival[i],
-                s_max * 1.2,
-                str(extra_s_arrival_name[i]),
-                rotation=90,
-            )
-            print(extra_s_arrival_name[i])
 
         plt.subplot(313)
-        plt.plot(tr_r.times(), tr_r.data, color="black")
-        plt.plot(
-            tr_cut_r.times() + r_start_final - extratime,
-            tr_cut_r.data,
-            color="red",
-            linewidth=2,
+        r_waves.plot_arrivals(
+            xlim=[p_waves.arrival - 400, r_waves.end_final + 2000], ylabel="Surface waves"
         )
-        plt.axvline(r_start_final, color="red", linewidth=2)
-        plt.axvline(r_end_final, color="red", linewidth=2)
-        plt.plot(tr_r.times(), env_surface, color="black", linestyle=":")
-        plt.xlim(p_arrival - 400, r_end_final + 2000)
-        plt.axvline(r_start1, color="black", linestyle="--")
-        plt.axvline(r_start2, color="black", linestyle="--")
-        plt.ylabel("surf. waves")
 
         plt.suptitle(f"Station: {station} Channel: {channel}")
         plt.savefig(f"{plot_folder}/{station}_{channel}_picking.png")
