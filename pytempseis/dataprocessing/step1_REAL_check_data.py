@@ -30,6 +30,94 @@ class PointPicker:
             plt.close()
 
 
+def check_and_pick(tr_r, tr_s, xlim_max=6000.0, xlim_min=0.0):
+    xlim_mid = (xlim_max + xlim_min) / 2.0
+
+    fig = plt.figure(figsize=(11.69, 8.27))
+    plt.subplot(211)
+    plt.plot(
+        tr_r.times(reftime=tr_r.stats.starttime),
+        tr_r.data,
+        color="black",
+        linewidth=3,
+        zorder=0,
+    )
+    plt.plot(
+        tr_s.times(reftime=tr_r.stats.starttime),
+        tr_s.data,
+        color="red",
+        zorder=10,
+    )
+    plt.axvline(xlim_mid, linestyle=":")
+    plt.fill(
+        [0, xlim_mid, xlim_mid, 0],
+        [0, 0, 1000, 1000],
+        "lime",
+        alpha=0.2,
+        edgecolor="r",
+    )
+    plt.fill(
+        [0, xlim_mid, xlim_mid, 0],
+        [0, 0, -1000, -1000],
+        "red",
+        alpha=0.2,
+        edgecolor="r",
+    )
+    plt.fill(
+        [xlim_mid, 80000, 80000, xlim_mid],
+        [-1000, -1000, 1000, 1000],
+        "yellow",
+        alpha=0.2,
+        edgecolor="r",
+    )
+    plt.ylim(1.5 * min(tr_r.data), 1.5 * max(tr_r.data))
+
+    plt.annotate(
+        "SAVE IT", xy=(0.1, 0.75), xycoords="axes fraction", fontsize=20
+    )
+    plt.annotate(
+        "BIN IT", xy=(0.1, 0.25), xycoords="axes fraction", fontsize=20
+    )
+    plt.annotate(
+        "FLIP IT", xy=(0.75, 0.75), xycoords="axes fraction", fontsize=20
+    )
+
+    plt.xlim(xlim_min, xlim_max)
+
+    plt.subplot(212)
+    plt.plot(
+        tr_r.times(reftime=tr_r.stats.starttime), -tr_r.data, color="black"
+    )
+    plt.plot(tr_s.times(reftime=tr_r.stats.starttime), tr_s.data, color="red")
+    plt.axvline(xlim_mid, linestyle=":")
+    plt.xlim(xlim_min, xlim_max)
+
+    pointpick = PointPicker(fig)
+
+    plt.suptitle(tr_r.id)
+    plt.show()
+
+    return pointpick.xx[0], pointpick.yy[0]
+
+
+def plot_traces(tr_r, tr_s, status="", plot_folder="./", xlim_max=6000):
+    plt.figure(figsize=(11.69, 8.27))
+    plt.subplot(211)
+    plt.plot(tr_r.times(), tr_r.data, color="black", linewidth=3, zorder=0)
+    plt.plot(tr_s.times(), tr_s.data, color="red", zorder=10)
+    plt.ylim(1.5 * min(tr_r.data), 1.5 * max(tr_r.data))
+    plt.xlim(0, xlim_max)
+
+    plt.subplot(212)
+    plt.plot(tr_r.times(), -tr_r.data, color="black")
+    plt.plot(tr_s.times(), tr_s.data, color="red")
+    plt.xlim(0, xlim_max)
+
+    plt.suptitle(tr_r.id + "\n" + status)
+    plt.savefig(os.path.join(plot_folder, f"{tr_r.id}.png"))
+    plt.close()
+
+
 def check_data(event_code, database):
     Data_folder = f"{database}/{event_code}/processed_data/"
     Synt_folder = f"{database}/{event_code}/synthetics/point_source"
@@ -42,6 +130,7 @@ def check_data(event_code, database):
 
     xlim_min = 0.0
     xlim_max = 6000.0
+    xlim_mid = (xlim_max + xlim_min) / 2.0
 
     output_file = f"{database}/{event_code}/first_check.txt"
     out = open(output_file, "w")
@@ -67,75 +156,7 @@ def check_data(event_code, database):
                 tr_s = read(filename_synt)[0]
                 tr_s = filter_trace(tr_s, Tmin, Tmax)
 
-                xlim_mid = (xlim_max + xlim_min) / 2.0
-
-                fig, ax = plt.subplots()
-                fig = plt.figure(1, figsize=(11.69, 8.27))
-                plt.subplot(211)
-                plt.plot(
-                    tr_r.times(reftime=tr_r.stats.starttime),
-                    tr_r.data,
-                    color="black",
-                    linewidth=3,
-                    zorder=0,
-                )
-                plt.plot(
-                    tr_s.times(reftime=tr_r.stats.starttime),
-                    tr_s.data,
-                    color="red",
-                    zorder=10,
-                )
-                plt.axvline(xlim_mid, linestyle=":")
-                plt.fill(
-                    [0, xlim_mid, xlim_mid, 0],
-                    [0, 0, 1000, 1000],
-                    "lime",
-                    alpha=0.2,
-                    edgecolor="r",
-                )
-                plt.fill(
-                    [0, xlim_mid, xlim_mid, 0],
-                    [0, 0, -1000, -1000],
-                    "red",
-                    alpha=0.2,
-                    edgecolor="r",
-                )
-                plt.fill(
-                    [xlim_mid, 80000, 80000, xlim_mid],
-                    [-1000, -1000, 1000, 1000],
-                    "yellow",
-                    alpha=0.2,
-                    edgecolor="r",
-                )
-                plt.ylim(1.5 * min(tr_r.data), 1.5 * max(tr_r.data))
-
-                plt.annotate(
-                    "SAVE IT", xy=(0.1, 0.75), xycoords="axes fraction", fontsize=20
-                )
-                plt.annotate(
-                    "BIN IT", xy=(0.1, 0.25), xycoords="axes fraction", fontsize=20
-                )
-                plt.annotate(
-                    "FLIP IT", xy=(0.75, 0.75), xycoords="axes fraction", fontsize=20
-                )
-
-                plt.xlim(xlim_min, xlim_max)
-
-                plt.subplot(212)
-                plt.plot(
-                    tr_r.times(reftime=tr_r.stats.starttime), -tr_r.data, color="black"
-                )
-                plt.plot(tr_s.times(reftime=tr_r.stats.starttime), tr_s.data, color="red")
-                plt.axvline(xlim_mid, linestyle=":")
-                plt.xlim(xlim_min, xlim_max)
-
-                pointpick = PointPicker(fig)
-
-                plt.suptitle(tr_r.id)
-                plt.show()
-
-                x = pointpick.xx[0]
-                y = pointpick.yy[0]
+                x, y = check_and_pick(tr_r, tr_s, xlim_max, xlim_min)
 
                 if y > 0 and x < xlim_mid:
                     line = station + "\t" + c + "\tY\n"
@@ -151,22 +172,7 @@ def check_data(event_code, database):
                     status = "FLIPPED"
 
                 print(status)
-                # plot and save
-                fig = plt.figure(1, figsize=(11.69, 8.27))
-                plt.subplot(211)
-                plt.plot(tr_r.times(), tr_r.data, color="black", linewidth=3, zorder=0)
-                plt.plot(tr_s.times(), tr_s.data, color="red", zorder=10)
-                plt.ylim(1.5 * min(tr_r.data), 1.5 * max(tr_r.data))
-                plt.xlim(0, xlim_max)
-
-                plt.subplot(212)
-                plt.plot(tr_r.times(), -tr_r.data, color="black")
-                plt.plot(tr_s.times(), tr_s.data, color="red")
-                plt.xlim(0, xlim_max)
-
-                plt.suptitle(tr_r.id + "\n" + status)
-                plt.savefig(plot_folder + tr_r.id + ".png")
-                plt.close()
+                plot_traces(tr_r, tr_s, status, plot_folder, xlim_max)
 
             else:
                 print("file not found")
