@@ -16,7 +16,7 @@ def distance(lat1, lon1, lat2, lon2):
     dlat = lat2 - lat1
 
     a = np.sin(dlat / 2) ** 2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon / 2) ** 2
-    c = 2 * np.atan2(np.sqrt(a), np.sqrt(1 - a))
+    c = 2 * np.arctan2(np.sqrt(a), np.sqrt(1 - a))
 
     distance_deg = np.rad2deg(c)
     distance_km = R * c
