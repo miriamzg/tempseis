@@ -259,8 +259,8 @@ if __name__ == "__main__":
     database = sys.argv[2]
 
     p_waves = WaveArrivals(
-        20,
-        70,
+        25,
+        60,
         100,
         100,
         [
@@ -278,7 +278,7 @@ if __name__ == "__main__":
         wavetype="p",
     )
     s_waves = WaveArrivals(
-        20,
+        25,
         100,
         100,
         100,
