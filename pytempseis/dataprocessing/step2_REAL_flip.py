@@ -9,8 +9,8 @@ def flip_seismograms(event_code, database):
     output_folder = f"{database}/{event_code}/data_ready2use/"
     channel = "BH"
 
-    os.system(f"mkdir {output_folder}")
-    os.system(f"rm {output_folder}" + "*.sac")
+    if not os.path.exists(output_folder):
+        os.mkdir(output_folder)
 
     with open(f"{database}/{event_code}/first_check.txt") as file:
         next(file)
