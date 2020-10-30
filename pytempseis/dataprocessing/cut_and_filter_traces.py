@@ -53,11 +53,13 @@ def process(eventcode, database, periods, real=True):
             else:
                 for der in derivative_list:
                     print(
-                        f"Cutting and filtering traces, {station}, {comp}, {wavetype}"
+                        f"Cutting and filtering traces, {station}, {comp}, {wavetype}, {der}"
                     )
                     traces.cut_filter_kernels(station, comp, der, wavetype)
 
-                    print(f"Converting derivatives {station}, {comp}, {wavetype}")
+                    print(
+                        f"Converting derivatives {station}, {comp}, {wavetype}, {der}"
+                    )
                     traces.derivatives_to_ascii(station, comp, der, wavetype)
 
                 print(f"Preparing real data , {station}, {comp}, {wavetype}")
@@ -108,7 +110,7 @@ class Traces:
         )
 
         tr_cut_f.write(
-            f"{self.self.kernelfolder}cut/{station}_{comp}_{wavetype}_{der}.sac",
+            f"{self.kernelfolder}cut/{station}_{comp}_{wavetype}_{der}.sac",
             format="SAC",
         )
 
@@ -192,7 +194,7 @@ class Traces:
     def _get_cut_times(self):
         # read cut times from picking time file
         self.cut_times = {}
-        with open(self.arrivalsfile) as f:
+        with open(self.arrivalsfile, "r") as f:
             for _ in range(7):
                 next(f)
             for line in f:
@@ -224,14 +226,18 @@ class Traces:
             Tmin = self.periods["Tmin_p"]
             Tmax = self.periods["Tmax_p"]
             t1, t2 = self.cut_times[station, comp][3], self.cut_times[station, comp][4]
-        if wavetype == "S":
+        elif wavetype == "S":
             Tmin = self.periods["Tmin_s"]
             Tmax = self.periods["Tmax_s"]
             t1, t2 = self.cut_times[station, comp][5], self.cut_times[station, comp][6]
+        else:
+            Tmin = self.periods["Tmin_r"]
+            Tmax = self.periods["Tmax_r"]
+            t1, t2 = self.cut_times[station, comp][7], self.cut_times[station, comp][8]
         return Tmin, Tmax, t1, t2
 
     def _write_fft_to_file(self, omega, sp, file):
-        with open(file) as out:
+        with open(file, "w") as out:
             out.write(f"{len(sp)}\n")
             out.write("omega\t\treal\t\t\timaginary\n")
             for i in range(0, len(sp)):
@@ -290,7 +296,7 @@ def plot_final(out_folder):
 
 def setup_directories(event_code, database, id_string, real=True):
     def _clean_directory(folder):
-        if os.path.exists(folder):
+        if not os.path.exists(folder):
             os.mkdir(folder)
         else:
             shutil.rmtree(folder)
@@ -327,7 +333,7 @@ def setup_directories(event_code, database, id_string, real=True):
 
 
 def read_fft_file(file):
-    with open(file) as file:
+    with open(file, "r") as file:
         ff, iimag, rreal = [], [], []
         cmplx = []
         for _ in range(2):
@@ -347,7 +353,6 @@ def read_fft_file(file):
 if __name__ == "__main__":
     event_code = sys.argv[1]
     database = sys.argv[2]
-
     real = True
     periods = {
         "Tmin": 17.0,  # first filtering
