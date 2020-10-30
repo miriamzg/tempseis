@@ -288,29 +288,11 @@ for station, comp in station_comp:
     for wavetype in wavetype_list:
         pass
 
-# =====================================================================
-# Plot and check final traces in the NA folder
-# =====================================================================
-print("Plotting and checking final traces...")
-obs_folder = f"{out_folder}/observed_data/"
-point_source_folder = f"{out_folder}/point_source/"
-kernels_folder = f"{out_folder}/kernels/"
 
-plot_folder = f"{out_folder}/comparision_plots"
-os.mkdir(f"{plot_folder}")
-
-filelist = glob.glob(f"{obs_folder}*_ff")
-for fl in filelist:
-    print(fl)
-    plt.figure(1, figsize=(11.69, 8.27))
-    filename = fl.split("/")[-1]
-
-    ps_file = point_source_folder + filename.replace("ff", "ps")
-    kernel_files = glob.glob(kernels_folder + filename.split("ff")[0] + "*")
-
-    with open(fl) as file:
+def read_fft_file(file):
+    with open(file) as file:
         ff, iimag, rreal = [], [], []
-        obs_complex = []
+        cmplx = []
         for _ in range(2):
             next(file)
         for line in file:
@@ -321,50 +303,52 @@ for fl in filelist:
             ff.append(f)
             rreal.append(real)
             iimag.append(imm)
-            obs_complex.append(c)
+            cmplx.append(c)
+    return ff, rreal, iimag, cmplx
 
-    plt.subplot(311)
-    plt.plot(ff, rreal, color="black")
 
-    plt.subplot(312)
-    plt.plot(ff, iimag, color="black")
+def plot_final(out_folder):
+    # =====================================================================
+    # Plot and check final traces in the NA folder
+    # =====================================================================
+    print("Plotting and checking final traces...")
+    obs_folder = f"{out_folder}/observed_data/"
+    point_source_folder = f"{out_folder}/point_source/"
+    plot_folder = f"{out_folder}/comparision_plots"
+    os.mkdir(f"{plot_folder}")
 
-    with open(ps_file) as file:
-        ff, iimag, rreal = [], [], []
-        ps_complex = []
-        for _ in range(2):
-            next(file)
-        for line in file:
-            f = float(line.split()[0])
-            real = float(line.split()[1])
-            imm = float(line.split()[2])
-            c = complex(real, imm)
-            ff.append(f)
-            rreal.append(real)
-            iimag.append(imm)
-            ps_complex.append(c)
+    filelist = glob.glob(f"{obs_folder}*_ff")
+    for fl in filelist:
+        print(fl)
+        plt.figure(1, figsize=(11.69, 8.27))
+        filename = fl.split("/")[-1]
 
-    npoints = len(ff)
-    obs_inv = np.fft.ifft(obs_complex, n=npoints)
-    ps_inv = np.fft.ifft(ps_complex, n=npoints)
+        ps_file = point_source_folder + filename.replace("ff", "ps")
 
-    plt.subplot(311)
-    plt.plot(ff, rreal, color="red")
-    plt.xlim(-0.5, 0.5)
+        obs_ff, obs_rreal, obs_iimag, obs_complex = read_fft_file(fl)
+        ps_ff, ps_rreal, ps_iimag, ps_complex = read_fft_file(ps_file)
 
-    plt.subplot(312)
-    plt.plot(ff, iimag, color="red")
-    plt.xlim(-0.5, 0.5)
+        npoints = len(ps_ff)
+        obs_inv = np.fft.ifft(obs_complex, n=npoints)
+        ps_inv = np.fft.ifft(ps_complex, n=npoints)
 
-    plt.subplot(313)
-    plt.plot(
-        np.arange(0, len(obs_inv), 1), obs_inv.real, label="Observed", color="black"
-    )
-    plt.plot(
-        np.arange(0, len(ps_inv), 1), ps_inv.real, label="Point source", color="red"
-    )
-    plt.legend(loc=2)
-    plt.savefig(plot_folder + "/" + filename + ".png")
-    plt.close()
+        plt.subplot(311)
+        plt.plot(obs_ff, obs_rreal, color="black")
+        plt.plot(ps_ff, ps_rreal, color="red")
+        plt.xlim(-0.5, 0.5)
 
-# #=============================================================
+        plt.subplot(312)
+        plt.plot(obs_ff, obs_iimag, color="black")
+        plt.plot(ps_ff, ps_iimag, color="red")
+        plt.xlim(-0.5, 0.5)
+
+        plt.subplot(313)
+        plt.plot(
+            np.arange(0, len(obs_inv), 1), obs_inv.real, label="Observed", color="black"
+        )
+        plt.plot(
+            np.arange(0, len(ps_inv), 1), ps_inv.real, label="Point source", color="red"
+        )
+        plt.legend(loc=2)
+        plt.savefig(f"{plot_folder}/{filename}.png")
+        plt.close()
