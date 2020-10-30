@@ -3,22 +3,7 @@ import sys
 from obspy.core import read
 import glob
 import matplotlib.pylab as plt
-from pytempseis.functions import filter_trace
-
-
-class PointPicker:
-    def __init__(self, fig):
-        self.fig = fig
-        self.xx = []
-        self.yy = []
-        self.cid = fig.canvas.callbacks.connect("button_press_event", self)
-
-    def __call__(self, event):
-        self.xx.append(event.xdata)
-        self.yy.append(event.ydata)
-        if len(self.yy) == 1:
-            self.fig.canvas.mpl_disconnect(self.cid)
-            plt.close()
+from pytempseis.functions import filter_trace, PointPicker
 
 
 def check_and_pick(tr_r, tr_s, xlim_max=6000.0, xlim_min=0.0):

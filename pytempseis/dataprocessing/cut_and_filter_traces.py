@@ -2,7 +2,7 @@ import os
 import sys
 import shutil
 import numpy as np
-from pytempseis.functions import full_fft, filter_trace, trim_trace_abs
+from pytempseis.functions import full_fft, filter_trace, trim_trace_abs, read_fft_file
 from obspy.core import read
 import glob
 from obspy.core.utcdatetime import UTCDateTime
@@ -330,24 +330,6 @@ def setup_directories(event_code, database, id_string, real=True):
         raise FileNotFoundError(arrivals_file)
 
     return data_folder, kernels_folder, ps_folder, out_folder, arrivals_file
-
-
-def read_fft_file(file):
-    with open(file, "r") as file:
-        ff, iimag, rreal = [], [], []
-        cmplx = []
-        for _ in range(2):
-            next(file)
-        for line in file:
-            f = float(line.split()[0])
-            real = float(line.split()[1])
-            imm = float(line.split()[2])
-            c = complex(real, imm)
-            ff.append(f)
-            rreal.append(real)
-            iimag.append(imm)
-            cmplx.append(c)
-    return ff, rreal, iimag, cmplx
 
 
 if __name__ == "__main__":

@@ -3,6 +3,39 @@ from numpy import linalg as LA
 import matplotlib.pylab as plt
 
 
+class PointPicker:
+    def __init__(self, fig):
+        self.fig = fig
+        self.xx = []
+        self.yy = []
+        self.cid = fig.canvas.callbacks.connect("button_press_event", self)
+
+    def __call__(self, event):
+        self.xx.append(event.xdata)
+        self.yy.append(event.ydata)
+        if len(self.yy) == 1:
+            self.fig.canvas.mpl_disconnect(self.cid)
+            plt.close()
+
+
+def read_fft_file(file):
+    with open(file, "r") as file:
+        ff, iimag, rreal = [], [], []
+        cmplx = []
+        for _ in range(2):
+            next(file)
+        for line in file:
+            f = float(line.split()[0])
+            real = float(line.split()[1])
+            imm = float(line.split()[2])
+            c = complex(real, imm)
+            ff.append(f)
+            rreal.append(real)
+            iimag.append(imm)
+            cmplx.append(c)
+    return ff, rreal, iimag, cmplx
+
+
 def distance(lat1, lon1, lat2, lon2):
     # approximate radius of earth in km
     R = 6371.0
