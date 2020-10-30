@@ -9,7 +9,7 @@ from obspy.core.utcdatetime import UTCDateTime
 import matplotlib.pyplot as plt
 
 
-def process(eventcode, database, periods, real=True):
+def cut_and_filter(eventcode, database, periods, real=True):
     id_string = "_".join(
         [
             f"{periods[T]}"
@@ -347,4 +347,4 @@ if __name__ == "__main__":
         "Tmax_r": 100,
     }
 
-    process(event_code, database, periods, real)
+    cut_and_filter(event_code, database, periods, real)
