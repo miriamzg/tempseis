@@ -16,7 +16,6 @@ def process(eventcode, database, periods, real=True):
             for T in ["Tmin_p", "Tmax_p", "Tmin_s", "Tmax_s", "Tmin_r", "Tmax_r"]
         ]
     )
-
     (
         data_folder,
         kernels_folder,
@@ -24,7 +23,6 @@ def process(eventcode, database, periods, real=True):
         out_folder,
         arrivals_file,
     ) = setup_directories(eventcode, database, id_string, real)
-
     wavetype_list = ["P", "S", "W"]
     derivative_list = [
         "dSdx",
@@ -37,16 +35,26 @@ def process(eventcode, database, periods, real=True):
         "dSdxdz",
         "dSdydz",
     ]
+    channel = "BH" if real else "MX"
 
-    traces = Traces(data_folder, kernels_folder, ps_folder, arrivals_file, out_folder, periods)
-
+    traces = Traces(
+        data_folder,
+        kernels_folder,
+        ps_folder,
+        arrivals_file,
+        out_folder,
+        periods,
+        channel,
+    )
     for station, comp in traces.cut_times:
         for wavetype in wavetype_list:
             if comp == "T" and wavetype == "P":
                 pass
             else:
                 for der in derivative_list:
-                    print(f"Cutting and filtering traces, {station}, {comp}, {wavetype}")
+                    print(
+                        f"Cutting and filtering traces, {station}, {comp}, {wavetype}"
+                    )
                     traces.cut_filter_kernels(station, comp, der, wavetype)
 
                     print(f"Converting derivatives {station}, {comp}, {wavetype}")
@@ -63,7 +71,14 @@ def process(eventcode, database, periods, real=True):
 
 class Traces:
     def __init__(
-        self, datafolder, kernelfolder, psfolder, arrivalsfile, outfolder, periods
+        self,
+        datafolder,
+        kernelfolder,
+        psfolder,
+        arrivalsfile,
+        outfolder,
+        periods,
+        channel,
     ):
         self.datafolder = datafolder
         self.kernelfolder = kernelfolder
@@ -71,6 +86,7 @@ class Traces:
         self.arrivalsfile = arrivalsfile
         self.outfolder = outfolder
         self.periods = periods
+        self.channel = channel
 
         self._get_cut_times()
         self.sampling_rate = 0.5
@@ -81,7 +97,7 @@ class Traces:
         # Cut kernels and filtering
         # =====================================================================
         origintime = self.cut_times[station, comp][2]
-        Tmin, Tmax, t1, t2 = self._select_period_and_cut(wavetype)
+        Tmin, Tmax, t1, t2 = self._select_period_and_cut(station, comp, wavetype)
 
         tr_tmp = read(f"{self.kernelfolder}{station}_{comp}_{der}.sac")[0]
         tr_cut_f = tr_tmp.copy()
@@ -119,11 +135,13 @@ class Traces:
         # Convert observed seismograms into asci (in frequency domain)
         # =====================================================================
         if real:
-            filelist = glob.glob(f"{self.datafolder}*.{station}*{channel}{comp}")
+            filelist = glob.glob(f"{self.datafolder}*.{station}*{self.channel}{comp}")
         else:
-            filelist = glob.glob(f"{self.datafolder}*.{station}*{channel}{comp}*.int.noisy")
+            filelist = glob.glob(
+                f"{self.datafolder}*.{station}*{self.channel}{comp}*.int.noisy"
+            )
 
-        Tmin, Tmax, t1, t2 = self._select_period_and_cut(wavetype)
+        Tmin, Tmax, t1, t2 = self._select_period_and_cut(station, comp, wavetype)
         starttime = self.cut_times[station, comp][0]
         if len(filelist) == 1:
             filename = filelist[0]
@@ -149,15 +167,13 @@ class Traces:
         # =====================================================================
         # Convert point source seismogram to asci (in frequency domain)
         # =====================================================================
-        Tmin, Tmax, t1, t2 = self._select_period_and_cut(wavetype)
+        Tmin, Tmax, t1, t2 = self._select_period_and_cut(station, comp, wavetype)
         origintime = self.cut_times[station, comp][2]
 
         filename = f"{self.psfolder}*{station}.MX{comp}.sem.sac"
         trace_tmp = read(filename)[0]
         trace_filt_tmp = filter_trace(trace_tmp, float(Tmin), float(Tmax))
-        trace_filt_tmp.interpolate(
-            sampling_rate=self.sampling_rate, method="linear"
-        )
+        trace_filt_tmp.interpolate(sampling_rate=self.sampling_rate, method="linear")
         trace_filt = trim_trace_abs(
             trace_filt_tmp, origintime, t1, t2, float(Tmax), self.extratime
         )
@@ -181,7 +197,7 @@ class Traces:
                 next(f)
             for line in f:
                 station = line.split()[0]
-                comp = line.split()[1].split(channel)[1]
+                comp = line.split()[1].split(self.channel)[1]
                 starttime = UTCDateTime(line.split()[2])
                 begin = float(line.split()[3])
                 origintime = UTCDateTime(line.split()[4])
@@ -203,7 +219,7 @@ class Traces:
                     r_end,
                 ]
 
-    def _select_period_and_cut(self, wavetype):
+    def _select_period_and_cut(self, station, comp, wavetype):
         if wavetype == "P":
             Tmin = self.periods["Tmin_p"]
             Tmax = self.periods["Tmax_p"]
@@ -225,28 +241,51 @@ class Traces:
                 out.write(f"{f:.8f}\t{a:.8e}\t\t{b:.8e}\n")
 
 
-event_code = sys.argv[1]
-database = sys.argv[2]
+def plot_final(out_folder):
+    # =====================================================================
+    # Plot and check final traces in the NA folder
+    # =====================================================================
+    print("Plotting and checking final traces...")
+    obs_folder = f"{out_folder}/observed_data/"
+    point_source_folder = f"{out_folder}/point_source/"
+    plot_folder = f"{out_folder}/comparision_plots"
+    os.mkdir(f"{plot_folder}")
 
-real = True
-channel = "BH" if real else "MX"
+    filelist = glob.glob(f"{obs_folder}*_ff")
+    for fl in filelist:
+        print(fl)
+        plt.figure(1, figsize=(11.69, 8.27))
+        filename = fl.split("/")[-1]
 
-# frequency band for first filtering
-Tmin = 17.0
-Tmax = 300.0
+        ps_file = point_source_folder + filename.replace("ff", "ps")
 
-# Frequency bands
-# p waves
-Tmin_p = 20
-Tmax_p = 70
+        obs_ff, obs_rreal, obs_iimag, obs_complex = read_fft_file(fl)
+        ps_ff, ps_rreal, ps_iimag, ps_complex = read_fft_file(ps_file)
 
-# s waves
-Tmin_s = 20
-Tmax_s = 100
+        npoints = len(ps_ff)
+        obs_inv = np.fft.ifft(obs_complex, n=npoints)
+        ps_inv = np.fft.ifft(ps_complex, n=npoints)
 
-# surface waves
-Tmin_r = 45
-Tmax_r = 100
+        plt.subplot(311)
+        plt.plot(obs_ff, obs_rreal, color="black")
+        plt.plot(ps_ff, ps_rreal, color="red")
+        plt.xlim(-0.5, 0.5)
+
+        plt.subplot(312)
+        plt.plot(obs_ff, obs_iimag, color="black")
+        plt.plot(ps_ff, ps_iimag, color="red")
+        plt.xlim(-0.5, 0.5)
+
+        plt.subplot(313)
+        plt.plot(
+            np.arange(0, len(obs_inv), 1), obs_inv.real, label="Observed", color="black"
+        )
+        plt.plot(
+            np.arange(0, len(ps_inv), 1), ps_inv.real, label="Point source", color="red"
+        )
+        plt.legend(loc=2)
+        plt.savefig(f"{plot_folder}/{filename}.png")
+        plt.close()
 
 
 def setup_directories(event_code, database, id_string, real=True):
@@ -305,48 +344,20 @@ def read_fft_file(file):
     return ff, rreal, iimag, cmplx
 
 
-def plot_final(out_folder):
-    # =====================================================================
-    # Plot and check final traces in the NA folder
-    # =====================================================================
-    print("Plotting and checking final traces...")
-    obs_folder = f"{out_folder}/observed_data/"
-    point_source_folder = f"{out_folder}/point_source/"
-    plot_folder = f"{out_folder}/comparision_plots"
-    os.mkdir(f"{plot_folder}")
+if __name__ == "__main__":
+    event_code = sys.argv[1]
+    database = sys.argv[2]
 
-    filelist = glob.glob(f"{obs_folder}*_ff")
-    for fl in filelist:
-        print(fl)
-        plt.figure(1, figsize=(11.69, 8.27))
-        filename = fl.split("/")[-1]
+    real = True
+    periods = {
+        "Tmin": 17.0,  # first filtering
+        "Tmax": 300.0,
+        "Tmin_p": 25,  # p waves
+        "Tmax_p": 60,
+        "Tmin_s": 25,  # s waves
+        "Tmax_s": 100,
+        "Tmin_r": 45,  # surface waves
+        "Tmax_r": 100,
+    }
 
-        ps_file = point_source_folder + filename.replace("ff", "ps")
-
-        obs_ff, obs_rreal, obs_iimag, obs_complex = read_fft_file(fl)
-        ps_ff, ps_rreal, ps_iimag, ps_complex = read_fft_file(ps_file)
-
-        npoints = len(ps_ff)
-        obs_inv = np.fft.ifft(obs_complex, n=npoints)
-        ps_inv = np.fft.ifft(ps_complex, n=npoints)
-
-        plt.subplot(311)
-        plt.plot(obs_ff, obs_rreal, color="black")
-        plt.plot(ps_ff, ps_rreal, color="red")
-        plt.xlim(-0.5, 0.5)
-
-        plt.subplot(312)
-        plt.plot(obs_ff, obs_iimag, color="black")
-        plt.plot(ps_ff, ps_iimag, color="red")
-        plt.xlim(-0.5, 0.5)
-
-        plt.subplot(313)
-        plt.plot(
-            np.arange(0, len(obs_inv), 1), obs_inv.real, label="Observed", color="black"
-        )
-        plt.plot(
-            np.arange(0, len(ps_inv), 1), ps_inv.real, label="Point source", color="red"
-        )
-        plt.legend(loc=2)
-        plt.savefig(f"{plot_folder}/{filename}.png")
-        plt.close()
+    process(event_code, database, periods, real)
