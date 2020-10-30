@@ -8,6 +8,8 @@ from obspy.core.utcdatetime import UTCDateTime
 import matplotlib.pyplot as plt
 
 event_code = sys.argv[1]
+database = sys.argv[2]
+
 real = True
 channel = "BH" if real else "MX"
 
@@ -36,56 +38,53 @@ comp_list = ["Z", "R", "T"]
 wavetype_list = ["P", "S", "W"]
 
 if real:
-    data_folder = f"../database/{event_code}/data_ready2use/"
+    data_folder = f"{database}/{event_code}/data_ready2use/"
 else:
-    data_folder = f"../database/{event_code}/processed_data/noisy/"
+    data_folder = f"{database}/{event_code}/processed_data/noisy/"
 
-arrivals_file = (
-    f"../database/{event_code}/picking_times_{Tmin_p}_{Tmax_p}_{Tmin_s}_{Tmax_s}_{Tmin_r}_{Tmax_r}.txt"
-)
-kernels_folder = f"../database/{event_code}/kernels/"
-ps_folder = f"../database/{event_code}/synthetics/point_source/"
-out_folder = (
-    f"../database/{event_code}/fortran_format_{Tmin_p}_{Tmax_p}_{Tmin_s}_{Tmax_s}_{Tmin_r}_{Tmax_r}"
-)
+arrivals_file = f"{database}/{event_code}/picking_times_{Tmin_p}_{Tmax_p}_{Tmin_s}_{Tmax_s}_{Tmin_r}_{Tmax_r}.txt"
+kernels_folder = f"{database}/{event_code}/kernels/"
+ps_folder = f"{database}/{event_code}/synthetics/point_source/"
+out_folder = f"{database}/{event_code}/fortran_format_{Tmin_p}_{Tmax_p}_{Tmin_s}_{Tmax_s}_{Tmin_r}_{Tmax_r}"
 
-os.system(f"mkdir {out_folder}")
+os.mkdir(out_folder)
 
 # read cut times from picking time file
 station_comp = []
-cut_file = arrivals_file
-c_lines = open(cut_file).readlines()
 cut_times = {}
-for i in range(7, len(c_lines)):
-    station = c_lines[i].split()[0]
-    comp = c_lines[i].split()[1].split(channel)[1]
-    starttime = UTCDateTime(c_lines[i].split()[2])
-    begin = float(c_lines[i].split()[3])
-    origintime = UTCDateTime(c_lines[i].split()[4])
-    p_start = UTCDateTime(c_lines[i].split()[5])
-    p_end = UTCDateTime(c_lines[i].split()[6])
-    s_start = UTCDateTime(c_lines[i].split()[7])
-    s_end = UTCDateTime(c_lines[i].split()[8])
-    r_start = UTCDateTime(c_lines[i].split()[9])
-    r_end = UTCDateTime(c_lines[i].split()[10])
-    cut_times[station, comp] = [
-        starttime,
-        begin,
-        origintime,
-        p_start,
-        p_end,
-        s_start,
-        s_end,
-        r_start,
-        r_end,
-    ]
-    station_comp.append([station, comp])
+with open(arrivals_file) as f:
+    for _ in range(7):
+        next(f)
+    for line in f:
+        station = line.split()[0]
+        comp = line.split()[1].split(channel)[1]
+        starttime = UTCDateTime(line.split()[2])
+        begin = float(line.split()[3])
+        origintime = UTCDateTime(line.split()[4])
+        p_start = UTCDateTime(line.split()[5])
+        p_end = UTCDateTime(line.split()[6])
+        s_start = UTCDateTime(line.split()[7])
+        s_end = UTCDateTime(line.split()[8])
+        r_start = UTCDateTime(line.split()[9])
+        r_end = UTCDateTime(line.split()[10])
+        cut_times[station, comp] = [
+            starttime,
+            begin,
+            origintime,
+            p_start,
+            p_end,
+            s_start,
+            s_end,
+            r_start,
+            r_end,
+        ]
+        station_comp.append([station, comp])
 
 
 # =====================================================================
 # 	Cut kernels and filtering
 # =====================================================================
-os.system(f"mkdir {kernels_folder}cut")
+os.mkdir(f"{kernels_folder}cut")
 derivative_list = [
     "dSdx",
     "dSdy",
@@ -97,9 +96,7 @@ derivative_list = [
     "dSdxdz",
     "dSdydz",
 ]
-for i in range(0, len(station_comp)):
-    station = station_comp[i][0]
-    comp = station_comp[i][1]
+for station, comp in station_comp:
     origintime = cut_times[station, comp][2]
     for der in derivative_list:
         for wavetype in wavetype_list:
@@ -117,9 +114,7 @@ for i in range(0, len(station_comp)):
                     Tmax = Tmax_s
                     t1, t2 = cut_times[station, comp][5], cut_times[station, comp][6]
 
-                tr_tmp = read(
-                    kernels_folder + station + "_" + comp + "_" + der + ".sac"
-                )[0]
+                tr_tmp = read(f"{kernels_folder}{station}_{comp}_{der}.sac")[0]
                 tr_cut_f = tr_tmp.copy()
                 tr_cut_f = filter_trace(tr_tmp, float(Tmin), float(Tmax))
                 smoothing_time = 0.1  # Tmax
@@ -136,22 +131,9 @@ for i in range(0, len(station_comp)):
 # =====================================================================
 # convert derivatives into ascii (in frequency domain)
 # =====================================================================
-os.system(f"mkdir {out_folder}/derivatives/")
+os.mkdir(f"{out_folder}/derivatives/")
 
-derivative_list = [
-    "dSdx",
-    "dSdy",
-    "dSdz",
-    "dS2dx2",
-    "dS2dy2",
-    "dS2dz2",
-    "dSdxdy",
-    "dSdxdz",
-    "dSdydz",
-]
-for i in range(0, len(station_comp)):
-    station = station_comp[i][0]
-    comp = station_comp[i][1]
+for station, comp in station_comp:
     print(f"Converting derivatives {station}, {comp}")
     for der in derivative_list:
         for wavetype in wavetype_list:
@@ -171,8 +153,8 @@ for i in range(0, len(station_comp)):
                     f"{out_folder}/derivatives/{station}_{comp}_{wavetype}_{der}",
                     "w",
                 )
-                out.write(f"len(sp)\n")
-                out.write(f"omega\t\treal\t\t\timaginary\n")
+                out.write("len(sp)\n")
+                out.write("omega\t\treal\t\t\timaginary\n")
                 for i in range(0, len(sp)):
                     f = omega[i]
                     a = np.real(sp[i])
@@ -184,13 +166,11 @@ for i in range(0, len(station_comp)):
 # Convert observed seismograms into asci (in frequency domain)
 # =====================================================================
 
-os.system(f"mkdir {data_folder}cut")
-os.system(f"rm {out_folder}/observed_data/*")
-os.system(f"mkdir {out_folder}/observed_data")
+os.mkdir(f"{data_folder}cut")
+os.remove(f"{out_folder}/observed_data/*")
+os.mkdir(f"{out_folder}/observed_data")
 
-for i in range(0, len(station_comp)):
-    station = station_comp[i][0]
-    comp = station_comp[i][1]
+for station, comp in station_comp:
     origintime = cut_times[station, comp][2]
     if real:
         filelist = glob.glob(f"{data_folder}*.{station}*{channel}{comp}")
@@ -211,7 +191,9 @@ for i in range(0, len(station_comp)):
                 Tmax = Tmax_s
                 t1, t2 = cut_times[station, comp][5], cut_times[station, comp][6]
 
-            print(f"Preparing real data , {station}, {comp}, {wavetype}, {Tmin}, {Tmax}")
+            print(
+                f"Preparing real data , {station}, {comp}, {wavetype}, {Tmin}, {Tmax}"
+            )
 
             if len(filelist) == 1:
                 filename = filelist[0]
@@ -244,12 +226,10 @@ for i in range(0, len(station_comp)):
 # =====================================================================
 # 	# Convert point source seismogram to asci (in frequency domain)
 # =====================================================================
-os.system(f"mkdir {ps_folder}cut")
-os.system(f"rm {out_folder}/point_source/*")
-os.system(f"mkdir {out_folder}/point_source")
-for i in range(0, len(station_comp)):
-    station = station_comp[i][0]
-    comp = station_comp[i][1]
+os.mkdir(f"{ps_folder}cut")
+os.remove(f"{out_folder}/point_source/*")
+os.mkdir(f"{out_folder}/point_source")
+for station, comp in station_comp:
     starttime = cut_times[station, comp][0]
     begin = cut_times[station, comp][1]
     origintime = cut_times[station, comp][2]
@@ -267,7 +247,9 @@ for i in range(0, len(station_comp)):
                 Tmax = Tmax_s
                 t1, t2 = cut_times[station, comp][5], cut_times[station, comp][6]
 
-            print(f"Preparing point source , {station}, {comp}, {wavetype}, {Tmin}, {Tmax}")
+            print(
+                f"Preparing point source , {station}, {comp}, {wavetype}, {Tmin}, {Tmax}"
+            )
 
             filename = f"{ps_folder}*{station}.MX{comp}.sem.sac"
             trace_tmp = read(filename)[0]
@@ -298,13 +280,13 @@ for i in range(0, len(station_comp)):
 # =====================================================================
 # Plot and check final traces in the NA folder
 # =====================================================================
-print(f"Plotting and checking final traces...")
+print("Plotting and checking final traces...")
 obs_folder = f"{out_folder}/observed_data/"
 point_source_folder = f"{out_folder}/point_source/"
 kernels_folder = f"{out_folder}/kernels/"
 
 plot_folder = f"{out_folder}/comparision_plots"
-os.system(f"mkdir {plot_folder}")
+os.mkdir(f"{plot_folder}")
 
 filelist = glob.glob(f"{obs_folder}*_ff")
 for fl in filelist:
@@ -315,18 +297,20 @@ for fl in filelist:
     ps_file = point_source_folder + filename.replace("ff", "ps")
     kernel_files = glob.glob(kernels_folder + filename.split("ff")[0] + "*")
 
-    lines = open(fl).readlines()
-    ff, iimag, rreal = [], [], []
-    obs_complex = []
-    for i in range(2, len(lines)):
-        f = float(lines[i].split()[0])
-        real = float(lines[i].split()[1])
-        imm = float(lines[i].split()[2])
-        c = complex(real, imm)
-        ff.append(f)
-        rreal.append(real)
-        iimag.append(imm)
-        obs_complex.append(c)
+    with open(fl) as file:
+        ff, iimag, rreal = [], [], []
+        obs_complex = []
+        for _ in range(2):
+            next(file)
+        for line in file:
+            f = float(line.split()[0])
+            real = float(line.split()[1])
+            imm = float(line.split()[2])
+            c = complex(real, imm)
+            ff.append(f)
+            rreal.append(real)
+            iimag.append(imm)
+            obs_complex.append(c)
 
     plt.subplot(311)
     plt.plot(ff, rreal, color="black")
@@ -334,18 +318,20 @@ for fl in filelist:
     plt.subplot(312)
     plt.plot(ff, iimag, color="black")
 
-    lines = open(ps_file).readlines()
-    ff, iimag, rreal = [], [], []
-    ps_complex = []
-    for i in range(2, len(lines)):
-        f = float(lines[i].split()[0])
-        real = float(lines[i].split()[1])
-        imm = float(lines[i].split()[2])
-        c = complex(real, imm)
-        ff.append(f)
-        rreal.append(real)
-        iimag.append(imm)
-        ps_complex.append(c)
+    with open(ps_file) as file:
+        ff, iimag, rreal = [], [], []
+        ps_complex = []
+        for _ in range(2):
+            next(file)
+        for line in file:
+            f = float(line.split()[0])
+            real = float(line.split()[1])
+            imm = float(line.split()[2])
+            c = complex(real, imm)
+            ff.append(f)
+            rreal.append(real)
+            iimag.append(imm)
+            ps_complex.append(c)
 
     npoints = len(ff)
     obs_inv = np.fft.ifft(obs_complex, n=npoints)
