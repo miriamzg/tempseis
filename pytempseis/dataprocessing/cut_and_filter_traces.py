@@ -1,5 +1,6 @@
 import os
 import sys
+import shutil
 import numpy as np
 from pytempseis.functions import full_fft, filter_trace, trim_trace_abs
 from obspy.core import read
@@ -8,14 +9,22 @@ from obspy.core.utcdatetime import UTCDateTime
 import matplotlib.pyplot as plt
 
 
+def process(eventcode, database, periods):
+    pass
+
+
 class Traces:
-    def __init__(self, datafolder, kernelfolder, ps_folder, arrivalsfile, outfolder):
+    def __init__(self, datafolder, kernelfolder, psfolder, arrivalsfile, outfolder, periods):
         self.datafolder = datafolder
         self.kernelfolder = kernelfolder
-        self.ps_folder = ps_folder
+        self.psfolder = psfolder
         self.arrivalsfile = arrivalsfile
         self.outfolder = outfolder
+        self.periods = periods
+
         self._get_cut_times()
+        self.sampling_rate = 0.5
+        self.extratime = 800
 
     def cut_filter_kernels(self, station, comp, der, wavetype):
         # =====================================================================
@@ -33,7 +42,7 @@ class Traces:
             tr_cut_f = filter_trace(tr_tmp, float(Tmin), float(Tmax))
             smoothing_time = 0.1  # Tmax
             tr_cut_f = trim_trace_abs(
-                tr_cut_f, origintime, t1, t2, smoothing_time, extratime
+                tr_cut_f, origintime, t1, t2, smoothing_time, self.extratime
             )
 
             tr_cut_f.write(
@@ -55,7 +64,7 @@ class Traces:
             )[0]
 
             trace = read(filename)[0]
-            trace.interpolate(sampling_rate=sampling_rate, method="linear")
+            trace.interpolate(sampling_rate=self.sampling_rate, method="linear")
 
             omega, sp = full_fft(trace)
             self._write_fft_to_file(
@@ -85,7 +94,7 @@ class Traces:
 
                 trace_filt_tmp = filter_trace(trace_tmp, float(Tmin), float(Tmax))
                 trace_filt = trim_trace_abs(
-                    trace_filt_tmp, starttime, t1, t2, float(Tmax), extratime
+                    trace_filt_tmp, starttime, t1, t2, float(Tmax), self.extratime
                 )
                 trace_filt.write(
                     f"{self.datafolder}cut/{station}_{comp}_{wavetype}.sac",
@@ -112,21 +121,25 @@ class Traces:
             )
             origintime = self.cut_times[station, comp][2]
 
-            filename = f"{self.ps_folder}*{station}.MX{comp}.sem.sac"
+            filename = f"{self.psfolder}*{station}.MX{comp}.sem.sac"
             trace_tmp = read(filename)[0]
             trace_filt_tmp = filter_trace(trace_tmp, float(Tmin), float(Tmax))
-            trace_filt_tmp.interpolate(sampling_rate=sampling_rate, method="linear")
+            trace_filt_tmp.interpolate(
+                sampling_rate=self.sampling_rate, method="linear"
+            )
             trace_filt = trim_trace_abs(
-                trace_filt_tmp, origintime, t1, t2, float(Tmax), extratime
+                trace_filt_tmp, origintime, t1, t2, float(Tmax), self.extratime
             )
             trace_filt.write(
-                f"{self.ps_folder}cut/{station}_{comp}_{wavetype}.sac",
+                f"{self.psfolder}cut/{station}_{comp}_{wavetype}.sac",
                 format="SAC",
             )
 
             omega, sp = full_fft(trace_filt)
             self._write_fft_to_file(
-                omega, sp, f"{self.outfolder}/point_source/{station}_{comp}_{wavetype}_ps"
+                omega,
+                sp,
+                f"{self.outfolder}/point_source/{station}_{comp}_{wavetype}_ps",
             )
 
     def _get_cut_times(self):
@@ -161,12 +174,12 @@ class Traces:
 
     def _select_period_and_cut(self, wavetype):
         if wavetype == "P":
-            Tmin = Tmin_p
-            Tmax = Tmax_p
+            Tmin = self.periods["Tmin_p"]
+            Tmax = self.periods["Tmax_p"]
             t1, t2 = self.cut_times[station, comp][3], self.cut_times[station, comp][4]
         if wavetype == "S":
-            Tmin = Tmin_s
-            Tmax = Tmax_s
+            Tmin = self.periods["Tmin_s"]
+            Tmax = self.periods["Tmax_s"]
             t1, t2 = self.cut_times[station, comp][5], self.cut_times[station, comp][6]
         return Tmin, Tmax, t1, t2
 
@@ -211,23 +224,13 @@ sampling_rate = 0.5  # Hz
 comp_list = ["Z", "R", "T"]
 wavetype_list = ["P", "S", "W"]
 
-if real:
-    data_folder = f"{database}/{event_code}/data_ready2use/"
-else:
-    data_folder = f"{database}/{event_code}/processed_data/noisy/"
 
-arrivals_file = f"{database}/{event_code}/picking_times_{Tmin_p}_{Tmax_p}_{Tmin_s}_{Tmax_s}_{Tmin_r}_{Tmax_r}.txt"
-kernels_folder = f"{database}/{event_code}/kernels/"
-ps_folder = f"{database}/{event_code}/synthetics/point_source/"
-out_folder = f"{database}/{event_code}/fortran_format_{Tmin_p}_{Tmax_p}_{Tmin_s}_{Tmax_s}_{Tmin_r}_{Tmax_r}"
 
-os.mkdir(out_folder)
 
 
 # =====================================================================
 # 	Cut kernels and filtering
 # =====================================================================
-os.mkdir(f"{kernels_folder}cut")
 derivative_list = [
     "dSdx",
     "dSdy",
@@ -240,7 +243,6 @@ derivative_list = [
     "dSdydz",
 ]
 for station, comp in station_comp:
-    origintime = cut_times[station, comp][2]
     for der in derivative_list:
         for wavetype in wavetype_list:
             pass
@@ -249,10 +251,7 @@ for station, comp in station_comp:
 # =====================================================================
 # convert derivatives into ascii (in frequency domain)
 # =====================================================================
-os.mkdir(f"{out_folder}/derivatives/")
-
 for station, comp in station_comp:
-    print(f"Converting derivatives {station}, {comp}")
     for der in derivative_list:
         for wavetype in wavetype_list:
             pass
@@ -260,33 +259,60 @@ for station, comp in station_comp:
 # =====================================================================
 # Convert observed seismograms into asci (in frequency domain)
 # =====================================================================
-
-os.mkdir(f"{data_folder}cut")
-os.remove(f"{out_folder}/observed_data/*")
-os.mkdir(f"{out_folder}/observed_data")
-
 for station, comp in station_comp:
-    origintime = cut_times[station, comp][2]
     if real:
         filelist = glob.glob(f"{data_folder}*.{station}*{channel}{comp}")
     else:
         filelist = glob.glob(f"{data_folder}*.{station}*{channel}{comp}*.int.noisy")
-    starttime = cut_times[station, comp][0]
     for wavetype in wavetype_list:
         pass
 
 # =====================================================================
 # 	# Convert point source seismogram to asci (in frequency domain)
 # =====================================================================
-os.mkdir(f"{ps_folder}cut")
-os.remove(f"{out_folder}/point_source/*")
-os.mkdir(f"{out_folder}/point_source")
 for station, comp in station_comp:
-    starttime = cut_times[station, comp][0]
-    begin = cut_times[station, comp][1]
-    origintime = cut_times[station, comp][2]
     for wavetype in wavetype_list:
         pass
+
+
+def setup_directories(event_code, database, id_string, real=True):
+    def _clean_directory(folder):
+        if os.path.exists(folder):
+            os.mkdir(folder)
+        else:
+            shutil.rmtree(folder)
+            os.mkdir(folder)
+
+    _root = f"{database}/{event_code}"
+
+    if real:
+        data_folder = f"{_root}/data_ready2use/"
+    else:
+        data_folder = f"{_root}/processed_data/noisy/"
+    out_folder = (
+        f"{_root}/fortran_format_{id_string}"
+    )
+    kernels_folder = f"{_root}/kernels/"
+    ps_folder = f"{_root}/synthetics/point_source/"
+
+    folders_to_make = [
+        out_folder,
+        f"{data_folder}cut",
+        f"{kernels_folder}cut",
+        f"{ps_folder}cut",
+        f"{out_folder}/derivatives/",
+        f"{out_folder}/observed_data",
+        f"{out_folder}/point_source",
+    ]
+
+    for folder in folders_to_make:
+        _clean_directory(folder)
+
+    arrivals_file = f"{_root}/picking_times_{id_string}.txt"
+    if not os.path.exists(arrivals_file):
+        raise FileNotFoundError(arrivals_file)
+
+    return data_folder, kernels_folder, ps_folder, out_folder, arrivals_file
 
 
 def read_fft_file(file):
