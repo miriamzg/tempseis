@@ -6,7 +6,7 @@ import glob
 
 
 def calc_derivatives(
-    Tmin, Tmax, station, comp, sampling_rate, derivatives_folder, out_folder
+    Tmin, Tmax, station, comp, derivatives_folder, out_folder
 ):
     derivatives_folder = derivatives_folder.split("kernels")[0]
 
@@ -107,7 +107,7 @@ def calc_derivatives(
     ) / (4 * delta_y * delta_z)
 
     for der_comp in derivative_list:
-        dS[der_comp].interpolate(sampling_rate=sampling_rate, method="linear")
+        dS[der_comp].interpolate(sampling_rate=0.5, method="linear")
         dS[der_comp].write(
             f"{out_folder}/{station}_{comp}_{der_comp}.sac",
             format="SAC",
@@ -121,7 +121,7 @@ def calc_derivatives(
     return
 
 
-def calculate_derivatives(event_code, database, Tmin, Tmax, sampling_rate=0.5):
+def calculate_derivatives(event_code, database, Tmin, Tmax):
     synthetics_folder = f"{database}/{event_code}/synthetics/"
     out_folder = f"{database}/{event_code}/kernels"
     if not os.path.exists(out_folder):
@@ -135,14 +135,14 @@ def calculate_derivatives(event_code, database, Tmin, Tmax, sampling_rate=0.5):
         station_comp.append([station, comp])
 
     # =====================================================================
-    # 	calculate derivatives
+    # calculate derivatives
     # =====================================================================
     for st_cmp in station_comp:
         station, comp = st_cmp
         if comp in ["Z", "R", "T"]:
             print(f"Calculating derivatives  {station} {comp}")
             calc_derivatives(
-                Tmin, Tmax, station, comp, sampling_rate, synthetics_folder, out_folder
+                Tmin, Tmax, station, comp, synthetics_folder, out_folder
             )
 
 
@@ -153,6 +153,5 @@ if __name__ == "__main__":
     # frequency band for first filtering
     Tmin = 17.0
     Tmax = 300.0
-    sampling_rate = 0.5  # Hz
 
-    calculate_derivatives(event_code, database, Tmin, Tmax, sampling_rate)
+    calculate_derivatives(event_code, database, Tmin, Tmax)
