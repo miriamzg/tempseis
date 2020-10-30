@@ -7,6 +7,180 @@ import glob
 from obspy.core.utcdatetime import UTCDateTime
 import matplotlib.pyplot as plt
 
+
+class Traces:
+    def __init__(self, datafolder, kernelfolder, ps_folder, arrivalsfile, outfolder):
+        self.datafolder = datafolder
+        self.kernelfolder = kernelfolder
+        self.ps_folder = ps_folder
+        self.arrivalsfile = arrivalsfile
+        self.outfolder = outfolder
+        self._get_cut_times()
+
+    def cut_filter_kernels(self, station, comp, der, wavetype):
+        # =====================================================================
+        # Cut kernels and filtering
+        # =====================================================================
+        if comp == "T" and wavetype == "P":
+            pass
+        else:
+            print(f"Cutting and filtering traces, {station}, {comp}, {der}, {wavetype}")
+            origintime = self.cut_times[station, comp][2]
+            Tmin, Tmax, t1, t2 = self._select_period_and_cut(wavetype)
+
+            tr_tmp = read(f"{kernels_folder}{station}_{comp}_{der}.sac")[0]
+            tr_cut_f = tr_tmp.copy()
+            tr_cut_f = filter_trace(tr_tmp, float(Tmin), float(Tmax))
+            smoothing_time = 0.1  # Tmax
+            tr_cut_f = trim_trace_abs(
+                tr_cut_f, origintime, t1, t2, smoothing_time, extratime
+            )
+
+            tr_cut_f.write(
+                f"{self.kernels_folder}cut/{station}_{comp}_{wavetype}_{der}.sac",
+                format="SAC",
+            )
+
+    def derivatives_to_ascii(self, station, comp, der, wavetype):
+        # =====================================================================
+        # convert derivatives into ascii (in frequency domain)
+        # =====================================================================
+        if comp == "T" and wavetype == "P":
+            pass
+        else:
+            print(f"Converting derivatives {station}, {comp}")
+
+            filename = glob.glob(
+                f"{self.kernelfolder}cut/{station}_{comp}_{wavetype}_{der}.sac"
+            )[0]
+
+            trace = read(filename)[0]
+            trace.interpolate(sampling_rate=sampling_rate, method="linear")
+
+            omega, sp = full_fft(trace)
+            self._write_fft_to_file(
+                omega,
+                sp,
+                f"{self.outfolder}/derivatives/{station}_{comp}_{wavetype}_{der}",
+            )
+
+    def observed_to_ascii(self, station, comp, filelist, wavetype):
+        # =====================================================================
+        # Convert observed seismograms into asci (in frequency domain)
+        # =====================================================================
+        if comp == "T" and wavetype == "P":
+            pass
+        else:
+            Tmin, Tmax, t1, t2 = self._select_period_and_cut(wavetype)
+
+            print(
+                f"Preparing real data , {station}, {comp}, {wavetype}, {Tmin}, {Tmax}"
+            )
+            starttime = self.cut_times[station, comp][0]
+
+            if len(filelist) == 1:
+                filename = filelist[0]
+
+                trace_tmp = read(filename)[0]
+
+                trace_filt_tmp = filter_trace(trace_tmp, float(Tmin), float(Tmax))
+                trace_filt = trim_trace_abs(
+                    trace_filt_tmp, starttime, t1, t2, float(Tmax), extratime
+                )
+                trace_filt.write(
+                    f"{self.datafolder}cut/{station}_{comp}_{wavetype}.sac",
+                    format="SAC",
+                )
+                omega, sp = full_fft(trace_filt)
+                self._write_fft_to_file(
+                    omega,
+                    sp,
+                    f"{self.outfolder}/observed_data/{station}_{comp}_{wavetype}_ff",
+                )
+
+    def pointsource_to_ascii(self, station, comp, wavetype):
+        # =====================================================================
+        # Convert point source seismogram to asci (in frequency domain)
+        # =====================================================================
+        if comp == "T" and wavetype == "P":
+            pass
+        else:
+            Tmin, Tmax, t1, t2 = self._select_period_and_cut(wavetype)
+
+            print(
+                f"Preparing point source , {station}, {comp}, {wavetype}, {Tmin}, {Tmax}"
+            )
+            origintime = self.cut_times[station, comp][2]
+
+            filename = f"{self.ps_folder}*{station}.MX{comp}.sem.sac"
+            trace_tmp = read(filename)[0]
+            trace_filt_tmp = filter_trace(trace_tmp, float(Tmin), float(Tmax))
+            trace_filt_tmp.interpolate(sampling_rate=sampling_rate, method="linear")
+            trace_filt = trim_trace_abs(
+                trace_filt_tmp, origintime, t1, t2, float(Tmax), extratime
+            )
+            trace_filt.write(
+                f"{self.ps_folder}cut/{station}_{comp}_{wavetype}.sac",
+                format="SAC",
+            )
+
+            omega, sp = full_fft(trace_filt)
+            self._write_fft_to_file(
+                omega, sp, f"{self.outfolder}/point_source/{station}_{comp}_{wavetype}_ps"
+            )
+
+    def _get_cut_times(self):
+        # read cut times from picking time file
+        self.cut_times = {}
+        with open(self.arrivalsfile) as f:
+            for _ in range(7):
+                next(f)
+            for line in f:
+                station = line.split()[0]
+                comp = line.split()[1].split(channel)[1]
+                starttime = UTCDateTime(line.split()[2])
+                begin = float(line.split()[3])
+                origintime = UTCDateTime(line.split()[4])
+                p_start = UTCDateTime(line.split()[5])
+                p_end = UTCDateTime(line.split()[6])
+                s_start = UTCDateTime(line.split()[7])
+                s_end = UTCDateTime(line.split()[8])
+                r_start = UTCDateTime(line.split()[9])
+                r_end = UTCDateTime(line.split()[10])
+                self.cut_times[station, comp] = [
+                    starttime,
+                    begin,
+                    origintime,
+                    p_start,
+                    p_end,
+                    s_start,
+                    s_end,
+                    r_start,
+                    r_end,
+                ]
+
+    def _select_period_and_cut(self, wavetype):
+        if wavetype == "P":
+            Tmin = Tmin_p
+            Tmax = Tmax_p
+            t1, t2 = self.cut_times[station, comp][3], self.cut_times[station, comp][4]
+        if wavetype == "S":
+            Tmin = Tmin_s
+            Tmax = Tmax_s
+            t1, t2 = self.cut_times[station, comp][5], self.cut_times[station, comp][6]
+        return Tmin, Tmax, t1, t2
+
+    def _write_fft_to_file(self, omega, sp, file):
+        with open(file) as out:
+            out.write(f"{len(sp)}\n")
+            out.write("omega\t\treal\t\t\timaginary\n")
+            for i in range(0, len(sp)):
+                f = omega[i]
+                a = np.real(sp[i])
+                b = np.imag(sp[i])
+                out.write(f"{f:.8f}\t{a:.8e}\t\t{b:.8e}\n")
+
+
 event_code = sys.argv[1]
 database = sys.argv[2]
 
@@ -49,37 +223,6 @@ out_folder = f"{database}/{event_code}/fortran_format_{Tmin_p}_{Tmax_p}_{Tmin_s}
 
 os.mkdir(out_folder)
 
-# read cut times from picking time file
-station_comp = []
-cut_times = {}
-with open(arrivals_file) as f:
-    for _ in range(7):
-        next(f)
-    for line in f:
-        station = line.split()[0]
-        comp = line.split()[1].split(channel)[1]
-        starttime = UTCDateTime(line.split()[2])
-        begin = float(line.split()[3])
-        origintime = UTCDateTime(line.split()[4])
-        p_start = UTCDateTime(line.split()[5])
-        p_end = UTCDateTime(line.split()[6])
-        s_start = UTCDateTime(line.split()[7])
-        s_end = UTCDateTime(line.split()[8])
-        r_start = UTCDateTime(line.split()[9])
-        r_end = UTCDateTime(line.split()[10])
-        cut_times[station, comp] = [
-            starttime,
-            begin,
-            origintime,
-            p_start,
-            p_end,
-            s_start,
-            s_end,
-            r_start,
-            r_end,
-        ]
-        station_comp.append([station, comp])
-
 
 # =====================================================================
 # 	Cut kernels and filtering
@@ -100,32 +243,7 @@ for station, comp in station_comp:
     origintime = cut_times[station, comp][2]
     for der in derivative_list:
         for wavetype in wavetype_list:
-            print(f"Cutting and filtering traces, {station}, {comp}, {der}, {wavetype}")
-            starttime = cut_times[station, comp][0]
-            if comp == "T" and wavetype == "P":
-                pass
-            else:
-                if wavetype == "P":
-                    Tmin = Tmin_p
-                    Tmax = Tmax_p
-                    t1, t2 = cut_times[station, comp][3], cut_times[station, comp][4]
-                if wavetype == "S":
-                    Tmin = Tmin_s
-                    Tmax = Tmax_s
-                    t1, t2 = cut_times[station, comp][5], cut_times[station, comp][6]
-
-                tr_tmp = read(f"{kernels_folder}{station}_{comp}_{der}.sac")[0]
-                tr_cut_f = tr_tmp.copy()
-                tr_cut_f = filter_trace(tr_tmp, float(Tmin), float(Tmax))
-                smoothing_time = 0.1  # Tmax
-                tr_cut_f = trim_trace_abs(
-                    tr_cut_f, origintime, t1, t2, smoothing_time, extratime
-                )
-
-                tr_cut_f.write(
-                    f"{kernels_folder}cut/{station}_{comp}_{wavetype}_{der}.sac",
-                    format="SAC",
-                )
+            pass
 
 
 # =====================================================================
@@ -137,30 +255,7 @@ for station, comp in station_comp:
     print(f"Converting derivatives {station}, {comp}")
     for der in derivative_list:
         for wavetype in wavetype_list:
-            if comp == "T" and wavetype == "P":
-                pass
-            else:
-
-                filename = glob.glob(
-                    f"{kernels_folder}cut/{station}_{comp}_{wavetype}_{der}.sac"
-                )[0]
-
-                trace = read(filename)[0]
-                trace.interpolate(sampling_rate=sampling_rate, method="linear")
-
-                omega, sp = full_fft(trace)
-                out = open(
-                    f"{out_folder}/derivatives/{station}_{comp}_{wavetype}_{der}",
-                    "w",
-                )
-                out.write("len(sp)\n")
-                out.write("omega\t\treal\t\t\timaginary\n")
-                for i in range(0, len(sp)):
-                    f = omega[i]
-                    a = np.real(sp[i])
-                    b = np.imag(sp[i])
-                    out.write(f"{f:.8f}\t{a:.8e}\t\t{b:.8e}\n")
-                out.close()
+            pass
 
 # =====================================================================
 # Convert observed seismograms into asci (in frequency domain)
@@ -178,50 +273,7 @@ for station, comp in station_comp:
         filelist = glob.glob(f"{data_folder}*.{station}*{channel}{comp}*.int.noisy")
     starttime = cut_times[station, comp][0]
     for wavetype in wavetype_list:
-        if comp == "T" and wavetype == "P":
-            pass
-        else:
-
-            if wavetype == "P":
-                Tmin = Tmin_p
-                Tmax = Tmax_p
-                t1, t2 = cut_times[station, comp][3], cut_times[station, comp][4]
-            if wavetype == "S":
-                Tmin = Tmin_s
-                Tmax = Tmax_s
-                t1, t2 = cut_times[station, comp][5], cut_times[station, comp][6]
-
-            print(
-                f"Preparing real data , {station}, {comp}, {wavetype}, {Tmin}, {Tmax}"
-            )
-
-            if len(filelist) == 1:
-                filename = filelist[0]
-
-                trace_tmp = read(filename)[0]
-                start1 = trace_tmp.stats.starttime
-
-                trace_filt_tmp = filter_trace(trace_tmp, float(Tmin), float(Tmax))
-                trace_filt = trim_trace_abs(
-                    trace_filt_tmp, starttime, t1, t2, float(Tmax), extratime
-                )
-                trace_filt.write(
-                    f"{data_folder}cut/{station}_{comp}_{wavetype}.sac",
-                    format="SAC",
-                )
-                omega, sp = full_fft(trace_filt)
-                out = open(
-                    f"{out_folder}/observed_data/{station}_{comp}_{wavetype}_ff",
-                    "w",
-                )
-                out.write(f"{len(sp)}\n")
-                out.write("omega\t\treal\t\t\timaginary\n")
-                for i in range(0, len(sp)):
-                    f = omega[i]
-                    a = np.real(sp[i])
-                    b = np.imag(sp[i])
-                    out.write(f"{f:.8f}\t{a:.8e}\t\t{b:.8e}\n")
-                out.close()
+        pass
 
 # =====================================================================
 # 	# Convert point source seismogram to asci (in frequency domain)
@@ -234,48 +286,7 @@ for station, comp in station_comp:
     begin = cut_times[station, comp][1]
     origintime = cut_times[station, comp][2]
     for wavetype in wavetype_list:
-        if comp == "T" and wavetype == "P":
-            pass
-        else:
-
-            if wavetype == "P":
-                Tmin = Tmin_p
-                Tmax = Tmax_p
-                t1, t2 = cut_times[station, comp][3], cut_times[station, comp][4]
-            if wavetype == "S":
-                Tmin = Tmin_s
-                Tmax = Tmax_s
-                t1, t2 = cut_times[station, comp][5], cut_times[station, comp][6]
-
-            print(
-                f"Preparing point source , {station}, {comp}, {wavetype}, {Tmin}, {Tmax}"
-            )
-
-            filename = f"{ps_folder}*{station}.MX{comp}.sem.sac"
-            trace_tmp = read(filename)[0]
-            trace_filt_tmp = filter_trace(trace_tmp, float(Tmin), float(Tmax))
-            trace_filt_tmp.interpolate(sampling_rate=sampling_rate, method="linear")
-            trace_filt = trim_trace_abs(
-                trace_filt_tmp, origintime, t1, t2, float(Tmax), extratime
-            )
-            trace_filt.write(
-                f"{ps_folder}cut/{station}_{comp}_{wavetype}.sac",
-                format="SAC",
-            )
-
-            omega, sp = full_fft(trace_filt)
-            out = open(
-                f"{out_folder}/point_source/{station}_{comp}_{wavetype}_ps",
-                "w",
-            )
-            out.write(str(len(sp)) + "\n")
-            out.write("omega\t\treal\t\t\timaginary\n")
-            for i in range(0, len(sp)):
-                f = omega[i]
-                a = np.real(sp[i])
-                b = np.imag(sp[i])
-            out.write(f"{f:.8f}\t{a:.8e}\t\t{b:.8e}\n")
-            out.close()
+        pass
 
 # =====================================================================
 # Plot and check final traces in the NA folder
