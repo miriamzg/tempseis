@@ -8,97 +8,73 @@ from pytempseis.dataprocessing import (
     cut_and_filter,
     final_check,
 )
+import yaml
 
-from argparse import ArgumentParser
 
-parser = ArgumentParser(
-    description="Prepares real and sythentic data and kernels for NA"
-)
-parser.add_argument("eventcode", type=str, help="GCMT code for event to be processed")
-parser.add_argument(
-    "database",
-    type=str,
-    help="Path to database.  This folder should contain a folder called <eventcode>",
-)
-parser.add_argument("--synth", action="store_true", help="Synthetic experiment")
+with open("parameters.yml", "r") as file:
+    params = yaml.full_load(file)
+    eventcode = params['eventcode']
+    database = params['database']
+    synth = not params["real"]
+    periods = params["periods"]
+    p_phases = params["p_phases"]
+    s_phases = params["s_phases"]
 
-args = parser.parse_args()
 
-response = input("Step 0: Extract SAC files from seed? (y/n)")
+response = input("Step 0: Extract SAC files from seed? (y/n)\t")
 while response not in ["y", "n"]:
-    response = input("Please provide valid response (y/n)")
+    response = input("Please provide valid response (y/n)\t")
 if response == "y":
-    preprocessing(args.eventcode, args.database)
+    preprocessing(eventcode, database)
 
 print("Step 1: First check")
-check_data(args.eventcode, args.database)
+check_data(eventcode, database)
 
 print("Step2: Flip some seismograms")
-flip_seismograms(args.eventcode, args.database)
+flip_seismograms(eventcode, database)
 
 print("Step3: Automatic windowing")
 p_waves = WaveArrivals(
-    25,
-    60,
+    periods["Tmin_p"],
+    periods["Tmax_p"],
     100,
     100,
-    [
-        "P",
-        "Pdiff",
-        "pP",
-        "PcP",
-        "sP",
-        "PKP",
-        "PKS",
-        "PKKP",
-        "PKP",
-        "PS",
-    ],
+    p_phases,
     wavetype="p",
 )
 s_waves = WaveArrivals(
-    25,
+    periods["Tmin_s"],
+    periods["Tmax_s"],
     100,
     100,
-    100,
-    ["S", "Sdiff", "pS", "SP", "sS", "PS", "SKS", "SP", "SKP"],
+    s_phases,
     wavetype="s",
 )
-r_waves = WaveArrivals(45, 100, 200, 400, wavetype="surface")
+r_waves = WaveArrivals(periods["Tmin_r"], periods["Tmax_r"], 200, 400, wavetype="surface")
 waves = [p_waves, s_waves, r_waves]
-automatic_time_windowing(args.eventcode, args.database, waves, not args.synth)
+automatic_time_windowing(eventcode, database, waves, not synth)
 
 print("Step4: Calculate derivatives")
-calculate_derivatives(args.eventcode, args.database, 17, 300)
+calculate_derivatives(eventcode, database, periods["Tmin"], periods["Tmax"])
 
 print("Step5: Cut and filter traces")
-periods = {
-    "Tmin": 17.0,  # first filtering
-    "Tmax": 300.0,
-    "Tmin_p": 25,  # p waves
-    "Tmax_p": 60,
-    "Tmin_s": 25,  # s waves
-    "Tmax_s": 100,
-    "Tmin_r": 45,  # surface waves
-    "Tmax_r": 100,
-}
-cut_and_filter(args.eventcode, args.database, periods, not args.synth)
+cut_and_filter(eventcode, database, periods, not synth)
 
-response = input("Step6: Do a final check? (y/n)")
+response = input("Step6: Do a final check? (y/n)\t")
 while response not in ["y", "n"]:
-    response = input("Please provide valid response (y/n)")
+    response = input("Please provide valid response (y/n)\t")
 if response == "y":
     id_string = "_".join(
         [
-            f"{periods[T]}"
+            f"{int(periods[T])}"
             for T in ["Tmin_p", "Tmax_p", "Tmin_s", "Tmax_s", "Tmin_r", "Tmax_r"]
         ]
     )
-    response = input("Step6: Do you want to check all traces manually? (y/n)")
+    response = input("Step6: Do you want to check all traces manually? (y/n)\t")
     while response not in ["y", "n"]:
-        response = input("Please provide valid response (y/n)")
+        response = input("Please provide valid response (y/n)\t")
     if response == "y":
-        use_all = True
-    else:
         use_all = False
-    final_check(args.eventcode, args.database, id_string, use_all)
+    else:
+        use_all = True
+    final_check(eventcode, database, id_string, use_all)
