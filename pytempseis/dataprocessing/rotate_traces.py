@@ -17,8 +17,6 @@ def rotate_traces(event_code, database):
             ev_lat = float(line.split()[1])
         elif line.split()[0] == "longitude":
             ev_lon = float(line.split()[1])
-        elif line.split()[0] == "depth":
-            ev_dep = float(line.split()[1])
         else:
             continue
 
@@ -39,7 +37,6 @@ def rotate_traces(event_code, database):
             st_lat = Ztr.stats["sac"]["stla"]
             st_lon = Ztr.stats["sac"]["stlo"]
             station = Ztr.stats.station
-            delta = Ztr.stats.delta
             channel = Ztr.stats.channel
 
             result = client.distaz(
