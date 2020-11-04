@@ -38,8 +38,7 @@ def compute_centroid_time(event_code, database):
         tr = read(raw_filename)[0]
         tr_new = tr.copy()
 
-        for i in range(0, len(tr_new.data)):
-            tr_new.data[i] = tr_new.data[i] / float(n_points)
+        tr_new.data /= n_points
         tr_new = shift_stream(tr_new, time_centroid)
 
         tr_new = filter_trace(tr_new, 17.0, 300.0)
