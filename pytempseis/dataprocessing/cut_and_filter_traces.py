@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 def cut_and_filter(eventcode, database, periods, real=True):
     id_string = "_".join(
         [
-            f"{periods[T]}"
+            f"{int(periods[T])}"
             for T in ["Tmin_p", "Tmax_p", "Tmin_s", "Tmax_s", "Tmin_r", "Tmax_r"]
         ]
     )

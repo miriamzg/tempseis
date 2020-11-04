@@ -165,7 +165,7 @@ def get_datafiles(folder, real=True):
 
 
 def automatic_time_windowing(event_code, database, waves, real=True):
-    id_string = "_".join([f"{wave.Tmin}_{wave.Tmax}" for wave in waves])
+    id_string = "_".join([f"{int(wave.Tmin)}_{int(wave.Tmax)}" for wave in waves])
     folder = f"{database}/{event_code}"
     cmt_file = f"{folder}/{event_code}"
 
@@ -183,6 +183,7 @@ def automatic_time_windowing(event_code, database, waves, real=True):
     sta_lines = open(f"{database}/STATIONS").readlines()
     file_list = get_datafiles(folder, real)
 
+    p_waves, s_waves, r_waves = waves
     with open(f"{folder}/picking_times_{id_string}.txt", "w") as out:
         for wave in waves:
             out.write(f"Period bands {wave.wavetype}: {wave.Tmin}\t{wave.Tmax}\n")
