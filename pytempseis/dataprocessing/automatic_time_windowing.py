@@ -164,8 +164,7 @@ def get_datafiles(folder, real=True):
     return file_list
 
 
-def automatic_time_windowing(event_code, database, waves, real=True):
-    id_string = "_".join([f"{int(wave.Tmin)}_{int(wave.Tmax)}" for wave in waves])
+def automatic_time_windowing(event_code, database, waves, id_string, real=True):
     folder = f"{database}/{event_code}"
     cmt_file = f"{folder}/{event_code}"
 
@@ -288,5 +287,6 @@ if __name__ == "__main__":
     )
     r_waves = WaveArrivals(45, 100, 200, 400, wavetype="surface")
     waves = [p_waves, s_waves, r_waves]
+    id_string = "_".join([f"{int(wave.Tmin)}_{int(wave.Tmax)}" for wave in waves])
     real = True
-    automatic_time_windowing(event_code, database, waves, real)
+    automatic_time_windowing(event_code, database, waves, id_string, real)

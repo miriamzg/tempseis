@@ -45,6 +45,13 @@ if __name__ == "__main__":
         p_phases = params["p_phases"]
         s_phases = params["s_phases"]
 
+    id_string = "_".join(
+        [
+            f"{int(periods[T])}"
+            for T in ["Tmin_p", "Tmax_p", "Tmin_s", "Tmax_s", "Tmin_r", "Tmax_r"]
+        ]
+    )
+
     if synth:
         synth_preprocessing(eventcode, database)
     else:
@@ -69,24 +76,19 @@ if __name__ == "__main__":
     )
     r_waves = WaveArrivals(periods["Tmin_r"], periods["Tmax_r"], 200, 400, wavetype="surface")
     waves = [p_waves, s_waves, r_waves]
-    automatic_time_windowing(eventcode, database, waves, not synth)
+    automatic_time_windowing(eventcode, database, waves, id_string, not synth)
 
     print("Step4: Calculate derivatives")
     calculate_derivatives(eventcode, database, periods["Tmin"], periods["Tmax"])
 
     print("Step5: Cut and filter traces")
-    cut_and_filter(eventcode, database, periods, not synth)
+    cut_and_filter(eventcode, database, periods, id_string, not synth)
 
     response = input("Step6: Do a final check? (y/n)\t")
     while response not in ["y", "n"]:
         response = input("Please provide valid response (y/n)\t")
     if response == "y":
-        id_string = "_".join(
-            [
-                f"{int(periods[T])}"
-                for T in ["Tmin_p", "Tmax_p", "Tmin_s", "Tmax_s", "Tmin_r", "Tmax_r"]
-            ]
-        )
+
         response = input("Step6: Do you want to check all traces manually? (y/n)\t")
         while response not in ["y", "n"]:
             response = input("Please provide valid response (y/n)\t")
