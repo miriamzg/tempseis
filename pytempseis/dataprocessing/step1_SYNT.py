@@ -7,7 +7,7 @@ from obspy.core import read
 import matplotlib.pyplot as plt
 
 
-def compute_centroid_time(event_code, database):
+def compute_centroid_time(event_code, database, Tmin, Tmax):
     raw_data_folder = f"{database}/{event_code}/raw_data/"
     processed_data_folder = f"{database}/{event_code}/processed_data/"
     cmt_finite_fault = f"{database}/{event_code}/{event_code}"
@@ -41,7 +41,7 @@ def compute_centroid_time(event_code, database):
         tr_new.data /= n_points
         tr_new = shift_stream(tr_new, time_centroid)
 
-        tr_new = filter_trace(tr_new, 17.0, 300.0)
+        tr_new = filter_trace(tr_new, Tmin, Tmax)
         tr_new.interpolate(sampling_rate=sampling_rate, method="cubic")
 
         tr_new.write(f"{processed_data_folder}{filename}.corr.int", format="SAC")
@@ -51,4 +51,8 @@ def compute_centroid_time(event_code, database):
 if __name__ == "__main__":
     event_code = sys.argv[1]
     database = sys.argv[2]
-    compute_centroid_time(event_code, database)
+
+    Tmin = 17.0
+    Tmax = 300.0
+
+    compute_centroid_time(event_code, database, Tmin, Tmax)
