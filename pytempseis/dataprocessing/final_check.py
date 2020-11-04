@@ -121,12 +121,13 @@ def final_check(event_code, database, id_string, use_all=False):
                 pointpick = PointPicker(fig)
                 plt.show()
                 x = pointpick.xx[0]
-                y = pointpick.yy[0]
 
                 if x >= h:
                     out.write(f"{sta}\t{comp}\t{wavetype}\tY\n")
                 else:
                     out.write(f"{sta}\t{comp}\t{wavetype}\tN\n")
+            else:
+                out.write(f"{sta}\t{comp}\t{wavetype}\tY\n")
 
             plt.close()
 
