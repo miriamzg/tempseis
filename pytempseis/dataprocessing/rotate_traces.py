@@ -9,17 +9,23 @@ database = sys.argv[2]
 
 
 data_path = f"{database}/{event_code}/synthetics/point_source/"
-client = Client()
-
-
-ev_lon = 140.5600
-ev_lat = 27.9400
-ev_dep = 680.7000
-
-
 filelist = glob.glob(f"{data_path}/*MXZ*.sac")
 
 
+cmt_finite_fault = f"{database}/{event_code}/{event_code}"
+cmt_lines = open(cmt_finite_fault).readlines()
+n_points = 0
+for line in cmt_lines:
+    if line.split()[0] == "latitude":
+        ev_lat = float(line.split()[1])
+    elif line.split()[0] == "longitude":
+        ev_lon = float(line.split()[1])
+    elif line.split()[0] == "depth":
+        ev_dep = float(line.split()[1])
+    else:
+        continue
+
+client = Client()
 for fl in filelist:
     Zfile = fl
     print(Zfile)
