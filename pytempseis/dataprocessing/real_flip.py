@@ -30,16 +30,15 @@ def flip_seismograms(event_code, database):
         tr = read(filename)[0]
         tri = tr.copy()
 
-        if status == "I":
-            for j in range(0, len(tr.data)):
-                tri.data[j] = -tr.data[j]
-            tri.write(output_folder + tr.id, format="SAC")
-
-        if status == "Y":
-            tr.write(output_folder + tr.id, format="SAC")
-
-        if status == "X":
+        if status == "FLIPPED":
+            tri.data = -tri.data
+            tri.write(output_folder + tri.id, format="SAC")
+        elif status == "SAVED":
+            tri.write(output_folder + tri.id, format="SAC")
+        elif status == "BINNED":
             pass
+        else:
+            raise ValueError("Invalid status for trace")
 
 
 if __name__ == "__main__":

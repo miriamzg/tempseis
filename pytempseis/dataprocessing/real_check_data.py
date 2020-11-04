@@ -132,19 +132,15 @@ def check_data(event_code, database, Tmin=35.0, Tmax=150.0):
                 x, y = check_and_pick(tr_r, tr_s, xlim_max, xlim_min)
 
                 if y > 0 and x < xlim_mid:
-                    line = station + "\t" + c + "\tY\n"
-                    out.write(line)
                     status = "SAVED"
                 if y < 0 and x < xlim_mid:
-                    line = station + "\t" + c + "\tN\n"
-                    out.write(line)
-                    status = "CANCELLED"
+                    status = "BINNED"
                 if x > xlim_mid:
-                    line = station + "\t" + c + "\tI\n"
-                    out.write(line)
                     status = "FLIPPED"
 
                 print(status)
+                line = f"{station}\t{c}\t{status}\n"
+                out.write(line)
                 plot_traces(tr_r, tr_s, status, plot_folder, xlim_max)
 
             else:
