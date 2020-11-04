@@ -8,3 +8,5 @@ from pytempseis.dataprocessing.automatic_time_windowing import (
 from pytempseis.dataprocessing.calculate_derivatives import calculate_derivatives
 from pytempseis.dataprocessing.cut_and_filter_traces import cut_and_filter
 from pytempseis.dataprocessing.final_check import final_check
+from pytempseis.dataprocessing.synth_centroid_time import compute_centroid_time
+from pytempseis.dataprocessing.synth_rotate_traces import rotate_traces
