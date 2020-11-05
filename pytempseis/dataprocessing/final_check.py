@@ -1,5 +1,4 @@
 import os
-import sys
 import matplotlib.pylab as plt
 import glob
 import numpy as np
@@ -135,20 +134,22 @@ def final_check(event_code, database, id_string, use_all=False):
 
 
 if __name__ == "__main__":
-    event_code = sys.argv[1]
-    database = sys.argv[2]
+    import yaml
 
-    # Frequency band
-    Tmin_p = 25
-    Tmax_p = 60
+    with open("parameters.yml", "r") as file:
+        params = yaml.full_load(file)
+        eventcode = params['eventcode']
+        database = params['database']
+        synth = not params["real"]
+        periods = params["periods"]
 
-    Tmin_s = 25
-    Tmax_s = 100
+    id_string = "_".join(
+        [
+            f"{int(periods[T])}"
+            for T in ["Tmin_p", "Tmax_p", "Tmin_s", "Tmax_s", "Tmin_r", "Tmax_r"]
+        ]
+    )
 
-    Tmin_r = 45
-    Tmax_r = 100
-
-    id_string = f"{Tmin_p}_{Tmax_p}_{Tmin_s}_{Tmax_s}_{Tmin_r}_{Tmax_r}"
     use_all = False
 
-    final_check(event_code, database, id_string, use_all)
+    final_check(eventcode, database, id_string, use_all)

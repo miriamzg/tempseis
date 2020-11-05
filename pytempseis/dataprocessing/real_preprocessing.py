@@ -1,5 +1,4 @@
 import os
-import sys
 import glob
 from obspy.core import read
 from pytempseis import _lib
@@ -110,6 +109,11 @@ def preprocessing(Event_code, database):
 
 
 if __name__ == "__main__":
-    Event_code = sys.argv[1]
-    database = sys.argv[2]
-    preprocessing(Event_code, database)
+    import yaml
+
+    with open("parameters.yml", "r") as file:
+        params = yaml.full_load(file)
+        eventcode = params["eventcode"]
+        database = params["database"]
+
+    preprocessing(eventcode, database)

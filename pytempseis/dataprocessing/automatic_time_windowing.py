@@ -1,5 +1,4 @@
 import os
-import sys
 import matplotlib.pylab as plt
 from obspy.core import read
 from obspy.taup import TauPyModel
@@ -255,38 +254,36 @@ def automatic_time_windowing(event_code, database, waves, id_string, real=True):
 
 
 if __name__ == "__main__":
-    event_code = sys.argv[1]
-    database = sys.argv[2]
+    import yaml
+
+    with open("parameters.yml", "r") as file:
+        params = yaml.full_load(file)
+        eventcode = params["eventcode"]
+        database = params["database"]
+        real = params["real"]
+        periods = params["periods"]
+        p_phases = params["p_phases"]
+        s_phases = params["s_phases"]
 
     p_waves = WaveArrivals(
-        25,
-        60,
+        periods["Tmin_p"],
+        periods["Tmax_p"],
         100,
         100,
-        [
-            "P",
-            "Pdiff",
-            "pP",
-            "PcP",
-            "sP",
-            "PKP",
-            "PKS",
-            "PKKP",
-            "PKP",
-            "PS",
-        ],
+        p_phases,
         wavetype="p",
     )
     s_waves = WaveArrivals(
-        25,
+        periods["Tmin_s"],
+        periods["Tmax_s"],
         100,
         100,
-        100,
-        ["S", "Sdiff", "pS", "SP", "sS", "PS", "SKS", "SP", "SKP"],
+        s_phases,
         wavetype="s",
     )
-    r_waves = WaveArrivals(45, 100, 200, 400, wavetype="surface")
+    r_waves = WaveArrivals(
+        periods["Tmin_r"], periods["Tmax_r"], 200, 400, wavetype="surface"
+    )
     waves = [p_waves, s_waves, r_waves]
     id_string = "_".join([f"{int(wave.Tmin)}_{int(wave.Tmax)}" for wave in waves])
-    real = True
-    automatic_time_windowing(event_code, database, waves, id_string, real)
+    automatic_time_windowing(eventcode, database, waves, id_string, real)

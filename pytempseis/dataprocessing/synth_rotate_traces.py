@@ -1,5 +1,4 @@
 import os
-import sys
 import glob
 from obspy.core import read
 from obspy.clients.iris import Client
@@ -62,6 +61,11 @@ def rotate_traces(event_code, database):
 
 
 if __name__ == "__main__":
-    event_code = sys.argv[1]
-    database = sys.argv[2]
-    rotate_traces(event_code, database)
+    import yaml
+
+    with open("parameters.yml", "r") as file:
+        params = yaml.full_load(file)
+        eventcode = params["eventcode"]
+        database = params["database"]
+
+    rotate_traces(eventcode, database)

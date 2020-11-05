@@ -1,5 +1,4 @@
 import os
-import sys
 from obspy.core import read
 import glob
 
@@ -42,6 +41,11 @@ def flip_seismograms(event_code, database):
 
 
 if __name__ == "__main__":
-    event_code = sys.argv[1]
-    database = sys.argv[2]
-    flip_seismograms(event_code, database)
+    import yaml
+
+    with open("parameters.yml", "r") as file:
+        params = yaml.full_load(file)
+        eventcode = params["eventcode"]
+        database = params["database"]
+
+    flip_seismograms(eventcode, database)

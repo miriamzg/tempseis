@@ -1,5 +1,4 @@
 import os
-import sys
 from obspy.core import read
 import glob
 import matplotlib.pylab as plt
@@ -148,8 +147,13 @@ def check_data(event_code, database, Tmin=35.0, Tmax=150.0):
 
 
 if __name__ == "__main__":
-    event_code = sys.argv[1]
-    database = sys.argv[2]
-    Tmin = 35.0
-    Tmax = 150.0
-    check_data(event_code, database, Tmin, Tmax)
+    import yaml
+
+    with open("parameters.yml", "r") as file:
+        params = yaml.full_load(file)
+        eventcode = params["eventcode"]
+        database = params["database"]
+        Tmin = params["periods"]["Tmin"]
+        Tmax = params["periods"]["Tmax"]
+
+    check_data(eventcode, database, Tmin, Tmax)

@@ -1,5 +1,4 @@
 import os
-import sys
 import shutil
 import numpy as np
 from pytempseis.functions import full_fft, filter_trace, trim_trace_abs, read_fft_file
@@ -327,18 +326,13 @@ def setup_directories(event_code, database, id_string, real=True):
 
 
 if __name__ == "__main__":
-    event_code = sys.argv[1]
-    database = sys.argv[2]
-    real = True
-    periods = {
-        "Tmin": 17.0,  # first filtering
-        "Tmax": 300.0,
-        "Tmin_p": 25,  # p waves
-        "Tmax_p": 60,
-        "Tmin_s": 25,  # s waves
-        "Tmax_s": 100,
-        "Tmin_r": 45,  # surface waves
-        "Tmax_r": 100,
-    }
+    import yaml
 
-    cut_and_filter(event_code, database, periods, real)
+    with open("parameters.yml", "r") as file:
+        params = yaml.full_load(file)
+        eventcode = params['eventcode']
+        database = params['database']
+        real = params["real"]
+        periods = params["periods"]
+
+    cut_and_filter(eventcode, database, periods, real)

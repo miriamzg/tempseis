@@ -1,6 +1,5 @@
 import glob
 import os
-import sys
 import numpy as np
 from pytempseis.functions import shift_stream, filter_trace
 from obspy.core import read
@@ -49,10 +48,13 @@ def compute_centroid_time(event_code, database, Tmin, Tmax):
 
 
 if __name__ == "__main__":
-    event_code = sys.argv[1]
-    database = sys.argv[2]
+    import yaml
 
-    Tmin = 17.0
-    Tmax = 300.0
+    with open("parameters.yml", "r") as file:
+        params = yaml.full_load(file)
+        eventcode = params["eventcode"]
+        database = params["database"]
+        Tmin = params["periods"]["Tmin"]
+        Tmax = params["periods"]["Tmax"]
 
-    compute_centroid_time(event_code, database, Tmin, Tmax)
+    compute_centroid_time(eventcode, database, Tmin, Tmax)

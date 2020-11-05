@@ -1,5 +1,4 @@
 import os
-import sys
 import matplotlib.pyplot as plt
 from obspy.core import read
 import glob
@@ -147,11 +146,13 @@ def calculate_derivatives(event_code, database, Tmin, Tmax):
 
 
 if __name__ == "__main__":
-    event_code = sys.argv[1]
-    database = sys.argv[2]
+    import yaml
 
-    # frequency band for first filtering
-    Tmin = 17.0
-    Tmax = 300.0
+    with open("parameters.yml", "r") as file:
+        params = yaml.full_load(file)
+        eventcode = params["eventcode"]
+        database = params["database"]
+        Tmin = params["periods"]["Tmin"]
+        Tmax = params["periods"]["Tmax"]
 
-    calculate_derivatives(event_code, database, Tmin, Tmax)
+    calculate_derivatives(eventcode, database, Tmin, Tmax)
