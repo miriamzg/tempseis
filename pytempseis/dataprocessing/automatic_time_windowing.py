@@ -13,12 +13,15 @@ class WaveArrivals:
     def __init__(self, Tmin, Tmax, pretime, posttime, phaselist=[], wavetype="body"):
         self.Tmin = Tmin
         self.Tmax = Tmax
-        self.pretime = pretime
-        self.posttime = posttime
         self.phaselist = phaselist
         if wavetype not in ["body", "p", "s", "surface"]:
             raise ValueError("wavetype must be either 'body', 'p', 's', or 'surface'")
         self.wavetype = wavetype
+        if wavetype in ["body", "p", "s"]:
+            self.pretime = self.posttime = 100
+        else:
+            self.pretime = 200
+            self.posttime = 100
 
     def body_arrivals(self, taup, ev_dep, dist_km):
         arrivals = taup.get_travel_times(
@@ -268,22 +271,16 @@ if __name__ == "__main__":
     p_waves = WaveArrivals(
         periods["Tmin_p"],
         periods["Tmax_p"],
-        100,
-        100,
         p_phases,
         wavetype="p",
     )
     s_waves = WaveArrivals(
         periods["Tmin_s"],
         periods["Tmax_s"],
-        100,
-        100,
         s_phases,
         wavetype="s",
     )
-    r_waves = WaveArrivals(
-        periods["Tmin_r"], periods["Tmax_r"], 200, 400, wavetype="surface"
-    )
+    r_waves = WaveArrivals(periods["Tmin_r"], periods["Tmax_r"], wavetype="surface")
     waves = [p_waves, s_waves, r_waves]
     id_string = build_id_string(periods)
     automatic_time_windowing(eventcode, database, waves, id_string, real)

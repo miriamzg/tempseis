@@ -57,20 +57,16 @@ if __name__ == "__main__":
     p_waves = WaveArrivals(
         periods["Tmin_p"],
         periods["Tmax_p"],
-        100,
-        100,
         p_phases,
         wavetype="p",
     )
     s_waves = WaveArrivals(
         periods["Tmin_s"],
         periods["Tmax_s"],
-        100,
-        100,
         s_phases,
         wavetype="s",
     )
-    r_waves = WaveArrivals(periods["Tmin_r"], periods["Tmax_r"], 200, 400, wavetype="surface")
+    r_waves = WaveArrivals(periods["Tmin_r"], periods["Tmax_r"], wavetype="surface")
     waves = [p_waves, s_waves, r_waves]
     automatic_time_windowing(eventcode, database, waves, id_string, not synth)
 
