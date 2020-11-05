@@ -41,17 +41,17 @@ if __name__ == "__main__":
         params = yaml.full_load(file)
         eventcode = params['eventcode']
         database = params['database']
-        synth = not params["real"]
+        real = params["real"]
         periods = params["periods"]
         p_phases = params["p_phases"]
         s_phases = params["s_phases"]
 
     id_string = build_id_string(periods)
 
-    if synth:
-        synth_preprocessing(eventcode, database)
-    else:
+    if real:
         real_preprocessing(eventcode, database)
+    else:
+        synth_preprocessing(eventcode, database)
 
     print("Step3: Automatic windowing")
     p_waves = WaveArrivals(
@@ -68,13 +68,13 @@ if __name__ == "__main__":
     )
     r_waves = WaveArrivals(periods["Tmin_r"], periods["Tmax_r"], wavetype="surface")
     waves = [p_waves, s_waves, r_waves]
-    automatic_time_windowing(eventcode, database, waves, id_string, not synth)
+    automatic_time_windowing(eventcode, database, waves, id_string, real)
 
     print("Step4: Calculate derivatives")
     calculate_derivatives(eventcode, database, periods["Tmin"], periods["Tmax"])
 
     print("Step5: Cut and filter traces")
-    cut_and_filter(eventcode, database, periods, not synth)
+    cut_and_filter(eventcode, database, periods, real)
 
     response = input("Step6: Do a final check? (y/n)\t")
     while response not in ["y", "n"]:
