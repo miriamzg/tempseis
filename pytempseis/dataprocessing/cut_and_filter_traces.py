@@ -1,14 +1,21 @@
 import os
 import shutil
 import numpy as np
-from pytempseis.functions import full_fft, filter_trace, trim_trace_abs, read_fft_file
+from pytempseis.functions import (
+    full_fft,
+    filter_trace,
+    trim_trace_abs,
+    read_fft_file,
+    build_id_string,
+)
 from obspy.core import read
 import glob
 from obspy.core.utcdatetime import UTCDateTime
 import matplotlib.pyplot as plt
 
 
-def cut_and_filter(eventcode, database, periods, id_string, real=True):
+def cut_and_filter(eventcode, database, periods, real=True):
+    id_string = build_id_string(periods)
     (
         data_folder,
         kernels_folder,
@@ -330,8 +337,8 @@ if __name__ == "__main__":
 
     with open("parameters.yml", "r") as file:
         params = yaml.full_load(file)
-        eventcode = params['eventcode']
-        database = params['database']
+        eventcode = params["eventcode"]
+        database = params["database"]
         real = params["real"]
         periods = params["periods"]
 

@@ -461,3 +461,12 @@ def xy_2_lonlatdep(x, y, z, rc, dip, strike):
     dep = z + rc_depth
 
     return lon, lat, dep
+
+
+def build_id_string(periods):
+    return "_".join(
+        [
+            f"{int(periods[T])}"
+            for T in ["Tmin_p", "Tmax_p", "Tmin_s", "Tmax_s", "Tmin_r", "Tmax_r"]
+        ]
+    )

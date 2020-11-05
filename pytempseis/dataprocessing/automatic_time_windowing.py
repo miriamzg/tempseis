@@ -6,7 +6,7 @@ import glob
 import obspy
 import numpy as np
 from copy import copy
-from pytempseis.functions import filter_trace, distance, trim_trace_abs
+from pytempseis.functions import filter_trace, distance, trim_trace_abs, build_id_string
 
 
 class WaveArrivals:
@@ -285,5 +285,5 @@ if __name__ == "__main__":
         periods["Tmin_r"], periods["Tmax_r"], 200, 400, wavetype="surface"
     )
     waves = [p_waves, s_waves, r_waves]
-    id_string = "_".join([f"{int(wave.Tmin)}_{int(wave.Tmax)}" for wave in waves])
+    id_string = build_id_string(periods)
     automatic_time_windowing(eventcode, database, waves, id_string, real)

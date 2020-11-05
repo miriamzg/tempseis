@@ -3,7 +3,7 @@ import matplotlib.pylab as plt
 import glob
 import numpy as np
 from pylab import fill
-from pytempseis.functions import PointPicker, read_fft_file
+from pytempseis.functions import PointPicker, read_fft_file, build_id_string
 
 
 def final_check(event_code, database, id_string, use_all=False):
@@ -143,13 +143,7 @@ if __name__ == "__main__":
         synth = not params["real"]
         periods = params["periods"]
 
-    id_string = "_".join(
-        [
-            f"{int(periods[T])}"
-            for T in ["Tmin_p", "Tmax_p", "Tmin_s", "Tmax_s", "Tmin_r", "Tmax_r"]
-        ]
-    )
-
+    id_string = build_id_string(periods)
     use_all = False
 
     final_check(eventcode, database, id_string, use_all)

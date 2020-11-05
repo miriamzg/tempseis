@@ -10,6 +10,7 @@ from pytempseis.dataprocessing import (
     compute_centroid_time,
     rotate_traces,
 )
+from pytempseis.functions import build_id_string
 import yaml
 
 
@@ -45,12 +46,7 @@ if __name__ == "__main__":
         p_phases = params["p_phases"]
         s_phases = params["s_phases"]
 
-    id_string = "_".join(
-        [
-            f"{int(periods[T])}"
-            for T in ["Tmin_p", "Tmax_p", "Tmin_s", "Tmax_s", "Tmin_r", "Tmax_r"]
-        ]
-    )
+    id_string = build_id_string(periods)
 
     if synth:
         synth_preprocessing(eventcode, database)
@@ -82,7 +78,7 @@ if __name__ == "__main__":
     calculate_derivatives(eventcode, database, periods["Tmin"], periods["Tmax"])
 
     print("Step5: Cut and filter traces")
-    cut_and_filter(eventcode, database, periods, id_string, not synth)
+    cut_and_filter(eventcode, database, periods, not synth)
 
     response = input("Step6: Do a final check? (y/n)\t")
     while response not in ["y", "n"]:
