@@ -10,7 +10,7 @@ from pytempseis.functions import filter_trace, distance, trim_trace_abs, build_i
 
 
 class WaveArrivals:
-    def __init__(self, Tmin, Tmax, pretime, posttime, phaselist=[], wavetype="body"):
+    def __init__(self, Tmin, Tmax, phaselist=[], wavetype="body"):
         self.Tmin = Tmin
         self.Tmax = Tmax
         self.phaselist = phaselist
