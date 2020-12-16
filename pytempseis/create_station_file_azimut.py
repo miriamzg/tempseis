@@ -1,11 +1,11 @@
 import os
 import glob
-from .functions import distance
+from pytempseis.functions import distance
 import numpy as np
 from argparse import ArgumentParser
 
 
-def get_station_coords(station, stations_file="../../STATIONS"):
+def get_station_coords(station, stations_file):
     station_list = []
     lines = open(stations_file).readlines()
     for i in range(0, len(lines)):
@@ -50,7 +50,7 @@ def calculate_initial_compass_bearing(pointA, pointB):
         np.sin(lat1) * np.cos(lat2) * np.cos(diffLong)
     )
 
-    initial_bearing = np.atan2(x, y)
+    initial_bearing = np.arctan2(x, y)
     initial_bearing = np.degrees(initial_bearing)
     compass_bearing = (initial_bearing + 360) % 360
 
@@ -61,13 +61,11 @@ parser = ArgumentParser(description="Builds station plots and rfi.in")
 parser.add_argument("database", type=str, help="Path to database")
 parser.add_argument("event_code", type=str, help="GCMT event code")
 parser.add_argument("filtering", type=str)
-parser.add_argument("datadir", type=str, help="Directory with observed data files")
-parser.add_argument("--no_selection_file", action="store_true")
-parser.add_argument("--stations_file", type=str, help="File with station details")
 args = parser.parse_args()
 
 folder = os.path.join(args.database, args.event_code)
 cmt_file = os.path.join(folder, args.event_code)
+stations_file = os.path.join(args.database, "STATIONS")
 
 dist_min_P = 20.0
 dist_max_P = 90.0
@@ -80,29 +78,27 @@ lines = open(cmt_file).readlines()
 ev_lat = float(lines[4].split()[1])
 ev_lon = float(lines[5].split()[1])
 
-if not args.no_selection_file:
-    selection_file = os.path.join(folder, args.filtering, "station2use.txt")
-    data2use = []
-    lines = open(selection_file).readlines()
-    for i in range(1, len(lines)):
-        sta = lines[i].split()[0]
-        comp = lines[i].split()[1]
-        wavetype = lines[i].split()[2]
-        use = lines[i].split()[3]
-        data2use.append([sta, comp, wavetype, use])
+selection_file = os.path.join(folder, args.filtering, "station2use.txt")
+data2use = []
+lines = open(selection_file).readlines()
+for i in range(1, len(lines)):
+    sta = lines[i].split()[0]
+    comp = lines[i].split()[1]
+    wavetype = lines[i].split()[2]
+    use = lines[i].split()[3]
+    data2use.append([sta, comp, wavetype, use])
 
 
 # =====================================================================
 # 	write station file
 # =====================================================================
 print("Writing station file...")
-filelist = glob.glob(args.datadir)
+filelist = glob.glob(os.path.join(folder, args.filtering, "observed_data", "*"))
 outlines = []
 outlines.append("#\n# Input file for receiver function inversion specific information\n#\n")
 outlines.append("rfi_param                              /* input model   */\n")
 outlines.append("rfi_models                             /* output models */\n")
-outlines.append(str(len(filelist)) + "\t\t\t/* nwave */\n")
-n = 0
+nwave = 0
 
 for wt in ["P", "S"]:
     print(f"Preparing {wt} waves")
@@ -121,7 +117,7 @@ for wt in ["P", "S"]:
         data_name = fl.split("/")[-1].split("_ff")[0]
         comp = fl.split("/")[-1].split("_")[1]
 
-        st_lat, st_lon = get_station_coords(station, args.stations_file)
+        st_lat, st_lon = get_station_coords(station, stations_file)
         dist = distance(st_lat, st_lon, ev_lat, ev_lon)[0]
         st = (st_lat, st_lon)
         ev = (ev_lat, ev_lon)
@@ -130,27 +126,19 @@ for wt in ["P", "S"]:
 
         if wavetype == wt and use_it and dist >= dist_min and dist <= dist_max:
             bbaz.append(baz)
-            n += 1
+            nwave += 1
 
     baz_bins = np.arange(0, 370, 10.0)
     counts, bins = np.histogram(bbaz, bins=baz_bins)
 
     for fl in sorted(filelist):
-        data_name = fl.split("/")[-1]
         station = fl.split("/")[-1].split("_")[0]
         wavetype = fl.split("/")[-1].split("_")[2]
         data_name = fl.split("/")[-1].split("_ff")[0]
         comp = fl.split("/")[-1].split("_")[1]
 
-        st_lat, st_lon = get_station_coords(station, args.stations_file)
+        st_lat, st_lon = get_station_coords(station, stations_file)
         dist = distance(st_lat, st_lon, ev_lat, ev_lon)[0]
-        if wt == "P":
-            dist_min = dist_min_P
-            dist_max = dist_max_P
-        else:
-            dist_min = dist_min_S
-            dist_max = dist_max_S
-
         st = (st_lat, st_lon)
         ev = (ev_lat, ev_lon)
         baz = calculate_initial_compass_bearing(ev, st)
@@ -172,8 +160,8 @@ for wt in ["P", "S"]:
             weight = str(round(density_sta, 3))
             outlines.append(f"{weight}\n")
 
+outlines.insert(3, f"{nwave}\t\t\t\t\t/* nwave */\n")
 outlines.append("1                                       /* iwrite_models */")
-outlines.insert(5, f"{n}\t\t\t/* nwave */\n")
 
 with open("rfi.in", "w") as outfile:
     outfile.writelines(outlines)
