@@ -48,8 +48,8 @@
       real*4 dS2_imag(3,3,maxdata)
       complex*8 dS2(maxwave, 3,3,maxdata)
       character*100 filename, sta
-      real*4 freq_ps(maxwave, maxdata), point_source_real(maxdata)
-      real*4 point_source_imag(maxdata)
+      real*4 freq_ps(maxwave, maxdata)
+      real*4 point_source_real(maxdata),point_source_imag(maxdata)
       complex*8 point_source(maxwave, maxdata)
       integer nlines(maxwave)
 
@@ -144,18 +144,15 @@
         amp_obs_real(iw) = 0.0
         amp_obs_imag(iw) = 0.0
         do i=1, npoints
-          amp_obs_real(iw) = amp_obs_real(iw) + real(observed_data(i,iw))**2
-          amp_obs_imag(iw) = amp_obs_imag(iw) + imag(observed_data(i,iw))**2
+          amp_obs_real(iw) = amp_obs_real(iw) + 
+     1                       real(observed_data(i,iw))**2
+          amp_obs_imag(iw) = amp_obs_imag(iw) + 
+     1                       imag(observed_data(i,iw))**2
         end do
 
       end do
 
-
-
-
-
       close(lu_rfi)
-
 
 !       read kernels
       do i=1,nwave
@@ -164,7 +161,8 @@
 !----------------------------------------------
 !		load kernels first order
 !----------------------------------------------
-        write(filename, '("../src/rfi_subs/kernels/",a,a5,a1)') sta(1:lw),'_dSdx',char(0)
+        write(filename, '("../src/rfi_subs/kernels/",a,a5,a1)') 
+     1        sta(1:lw),'_dSdx',char(0)
         open(11, file=filename, status="old")
         read(11, *) nlines(i)
         read(11,*)
@@ -174,7 +172,8 @@
         end do
         close(11)
 
-        write(filename, '("../src/rfi_subs/kernels/",a,a5,a1)') sta(1:lw),'_dSdy',char(0)
+        write(filename, '("../src/rfi_subs/kernels/",a,a5,a1)') 
+     1        sta(1:lw),'_dSdy',char(0)
         open(11, file=filename, status="old")
         read(11, *) nlines(i)
         read(11,*)
@@ -183,7 +182,8 @@
           dS1(i, 2,j)=complex(dS1_real(2,j),dS1_imag(2,j))
         end do
         close(11)
-        write(filename, '("../src/rfi_subs/kernels/",a,a5,a1)') sta(1:lw),'_dSdz',char(0)
+        write(filename, '("../src/rfi_subs/kernels/",a,a5,a1)') 
+     1        sta(1:lw),'_dSdz',char(0)
         open(11, file=filename, status="old")
         read(11, *) nlines(i)
         read(11,*)
@@ -197,18 +197,19 @@
 !		load kernels second order
 !----------------------------------------------
 
-        write(filename, '("../src/rfi_subs/kernels/",a,a7,a1)') sta(1:lw),'_dS2dx2',char(0)
+        write(filename, '("../src/rfi_subs/kernels/",a,a7,a1)') 
+     1        sta(1:lw),'_dS2dx2',char(0)
         open(11, file=filename, status="old")
         read(11, *) nlines(i)
         read(11,*)
         do j=1,nlines(i)
           read(11,*) dS2_freq(1,1,j), dS2_real(1,1,j), dS2_imag(1,1,j)
           dS2(i, 1,1,j)=complex(dS2_real(1,1,j),dS2_imag(1,1,j))
-
         end do
         close(11)
 
-        write(filename, '("../src/rfi_subs/kernels/",a,a7,a1)') sta(1:lw),'_dSdxdy',char(0)
+        write(filename, '("../src/rfi_subs/kernels/",a,a7,a1)') 
+     1        sta(1:lw),'_dSdxdy',char(0)
         open(11, file=filename, status="old")
         read(11, *) nlines(i)
         read(11,*)
@@ -218,7 +219,8 @@
         end do
         close(11)
 
-        write(filename, '("../src/rfi_subs/kernels/",a,a7,a1)') sta(1:lw),'_dSdxdz',char(0)
+        write(filename, '("../src/rfi_subs/kernels/",a,a7,a1)') 
+     1        sta(1:lw),'_dSdxdz',char(0)
         open(11, file=filename, status="old")
         read(11, *) nlines(i)
         read(11,*)
@@ -231,7 +233,8 @@
         dS2_freq(2,1,:) = dS2_freq(1,2,:)
         dS2(i, 2,1,:) = dS2(i, 1,2,:)
 
-        write(filename, '("../src/rfi_subs/kernels/",a,a7,a1)') sta(1:lw),'_dS2dy2',char(0)
+        write(filename, '("../src/rfi_subs/kernels/",a,a7,a1)') 
+     1        sta(1:lw),'_dS2dy2',char(0)
         open(11, file=filename, status="old")
         read(11, *) nlines(i)
         read(11,*)
@@ -241,7 +244,8 @@
         end do
         close(11)
 
-        write(filename, '("../src/rfi_subs/kernels/",a,a7,a1)') sta(1:lw),'_dSdydz',char(0)
+        write(filename, '("../src/rfi_subs/kernels/",a,a7,a1)') 
+     1        sta(1:lw),'_dSdydz',char(0)
         open(11, file=filename, status="old")
         read(11, *) nlines(i)
         read(11,*)
@@ -258,8 +262,8 @@
         dS2_freq(3,2,:) = dS2_freq(2,3,:)
         dS2(i, 3,2,:) = dS2(i, 2,3,:)
 
-
-        write(filename, '("../src/rfi_subs/kernels/",a,a7,a1)') sta(1:lw),'_dS2dz2',char(0)
+        write(filename, '("../src/rfi_subs/kernels/",a,a7,a1)') 
+     1        sta(1:lw),'_dS2dz2',char(0)
         open(11, file=filename, status="old")
         read(11, *) nlines(i)
         read(11,*)
@@ -272,22 +276,22 @@
 !		read point source solution
 !------------------------------------------------------------------------
 
-        write(filename, '("../src/rfi_subs/point_source/",a,a3,a1)') sta(1:lw),'_ps',char(0)
+        write(filename, '("../src/rfi_subs/point_source/",a,a3,a1)') 
+     1        sta(1:lw),'_ps',char(0)
         open(11, file=filename, status="old")
         read(11,*) nlines(i)
         read(11,*)
         do j=1, nlines(i)
-          read(11,*) freq_ps(i, j), point_source_real(j), point_source_imag(j)
-          point_source(i, j)=complex(point_source_real(j), point_source_imag(j))
+          read(11,*) freq_ps(i,j),point_source_real(j),
+     1               point_source_imag(j)
+          point_source(i, j)=complex(point_source_real(j),
+     1                               point_source_imag(j))
         end do
         close(11)
 
       end do
 
       if(lroot)write(lu_out,*)
-
- 100  format(1x,60("-")//)
- 101  format(/1x,60("-")/)
 
       return
       end
@@ -296,80 +300,79 @@
 
       include 'rfi_subs/rfi_param.inc'
 
-      real*4		lppd, misfitval
+      real*4 lppd, misfitval
 
-      real*4		model(nd)
+      real*4 model(nd)
 
-      real*8		rmodel(max_nd)
-      complex*8	observed_data(maxdata,maxwave),
-     &                  predicted_data(maxdata,maxwave)
+      real*8 rmodel(max_nd)
+      complex*8 observed_data(maxdata,maxwave),
+     1          predicted_data(maxdata,maxwave)
 
-      real*4		amp_obs_real(maxwave),
-     &amp_obs_imag(maxwave)
+      real*4 amp_obs_real(maxwave),amp_obs_imag(maxwave)
+      real*4 observed_data_r(maxdata,maxwave),
+     1       observed_data_i(maxdata,maxwave),
+     1       predicted_data_r(maxdata,maxwave),
+     1       predicted_data_i(maxdata,maxwave),
+     1       freq_obs(maxwave, maxdata),
+     1       weight(maxwave),
+     1       time_begin(maxwave),
+     1       time_end(maxwave),
+     1       Scalc_real(maxdata), Scalc_imag(maxdata)
 
-      real*4		observed_data_r(maxdata,maxwave),
-     &                  observed_data_i(maxdata,maxwave),
-     &                  predicted_data_r(maxdata,maxwave),
-     &                  predicted_data_i(maxdata,maxwave),
-     &freq_obs(maxwave, maxdata),
-     &weight(maxwave),
-     &time_begin(maxwave),
-     &time_end(maxwave),
-     &Scalc_real(maxdata), Scalc_imag(maxdata)
+      integer ndata(maxwave), s
+      integer nwave, nd
 
-      integer		ndata(maxwave), s
-      integer		nwave, nd
+      logical verbose,debug,timing,summary
 
-      logical		verbose,debug,timing,summary
+      character*40 fname(maxwave)
+      character*30 sname(maxwave)
+      character*300 command
+      character*10 stations(maxwave)
 
-      character*40	fname(maxwave)
-      character*30	sname(maxwave)
-      character*300   command
-      character*10	stations(maxwave)
-
-      real*4		dS1_freq(3,maxdata)
-      real*4		dS1_real(3,maxdata)
-      real*4		dS1_imag(3,maxdata)
-      complex*8	dS1(maxwave, 3, maxdata)
-      real*4		dS2_freq(3,3,maxdata)
-      real*4		dS2_real(3,3,maxdata)
-      real*4		dS2_imag(3,3,maxdata)
-      complex*8	dS2(maxwave, 3,3,maxdata)
-      character*100	filename, sta
-      real*4		freq_ps(maxwave, maxdata), point_source_real(maxdata), point_source_imag(maxdata)
-      complex*8	point_source(maxwave, maxdata)
-      integer		nlines(maxwave)
+      real*4 dS1_freq(3,maxdata)
+      real*4 dS1_real(3,maxdata)
+      real*4 dS1_imag(3,maxdata)
+      complex*8 dS1(maxwave, 3, maxdata)
+      real*4 dS2_freq(3,3,maxdata)
+      real*4 dS2_real(3,3,maxdata)
+      real*4 dS2_imag(3,3,maxdata)
+      complex*8 dS2(maxwave, 3,3,maxdata)
+      character*100 filename, sta
+      real*4 freq_ps(maxwave, maxdata)
+      real*4 point_source_real(maxdata), point_source_imag(maxdata)
+      complex*8 point_source(maxwave, maxdata)
+      integer nlines(maxwave)
 
 !						Info and Logical unit common
 !						blocks used by NA routines
 
       common /NA_IO/lu_na,lu_out,lu_sum,lu_det,lu_sob,lu_dis,
-     &              lu_nad,verbose,debug,timing,summary
+     1              lu_nad,verbose,debug,timing,summary
 
 
       common /rfi_com/observed_data, weight,
-     &                  time_begin, time_end,  ndata,
-     &                  nwave, lu_mod, fname, sname, stations,
-     &dS1, dS2, point_source, freq_obs, nlines,
-     &amp_obs_real, amp_obs_imag
+     1                time_begin, time_end,  ndata,
+     1                nwave, lu_mod, fname, sname, stations,
+     1                dS1, dS2, point_source, freq_obs, nlines,
+     1                amp_obs_real, amp_obs_imag
 
 !        Perform forward modelling on model `rmodel'.
       do j=1,nd
         rmodel(j) = dble(model(j))
       end do
 
-      call forward_modelling(
-     &    rmodel, nd, ndata, nwave, stations, predicted_data, observed_data,
-     &dS1, dS2, point_source, freq_obs, nlines, .false., .false.)
+      call forward_modelling(rmodel, nd, ndata, nwave, stations, 
+     1                       predicted_data, observed_data,
+     1                       dS1, dS2, point_source, freq_obs, nlines, 
+     1                       .false., .false.)
 
 
 
 !     Calculate misfit function
 
-      call calcmisfit(
-     &     predicted_data,
-     &     observed_data, nlines,
-     &     weight, nwave, misfitval, fname, amp_obs_real, amp_obs_imag, .false.)
+      call calcmisfit(predicted_data, observed_data, nlines,
+     1                weight, nwave, misfitval, fname, 
+     1                amp_obs_real, amp_obs_imag, .false.)
 
       lppd =  misfitval * 1
 
@@ -383,61 +386,61 @@
       end
 !------------------------------------------------------------------------
       subroutine writemodels
-     &             (nd, ntot, models, misfit, ns1, ns2, itmax,
-     &              nh_max, nh, header)
+     1             (nd, ntot, models, misfit, ns1, ns2, itmax,
+     1              nh_max, nh, header)
 
       include 'rfi_subs/rfi_param.inc'
 
 !						NA variables and arrays
-      real*4		models(nd,*)
-      real*4		misfit(ntot)
-      real*4		mfitmin
-      real*4		mfitminc
-      real*4		mfitmean
-      real*4		lppd, misfitval
+      real*4 models(nd,*)
+      real*4 misfit(ntot)
+      real*4 mfitmin
+      real*4 mfitminc
+      real*4 mfitmean
+      real*4 lppd, misfitval
 
-      character*(*)   header
+      character*(*) header
 
-      logical		verbose,debug,timing,summary
-      real*8		rmodel(max_nd)
+      logical verbose,debug,timing,summary
+      real*8 rmodel(max_nd)
 
-      complex*8	observed_data(maxdata,maxwave),
-     &                  predicted_data(maxdata,maxwave)
+      complex*8 observed_data(maxdata,maxwave),
+     1          predicted_data(maxdata,maxwave)
 
-      real*4		amp_obs_real(maxwave),
-     &amp_obs_imag(maxwave)
+      real*4 amp_obs_real(maxwave),amp_obs_imag(maxwave)
 
-      real*4		weight(maxwave),
-     &time_begin(maxwave),
-     &time_end(maxwave),
-     &freq_obs(maxwave, maxdata)
+      real*4 weight(maxwave),
+     1       time_begin(maxwave),
+     1       time_end(maxwave),
+     1       freq_obs(maxwave, maxdata)
 
-      integer		ndata(maxwave), nd
+      integer ndata(maxwave), nd
 
-      character*40    fname(maxwave)
-      character*30	sname(maxwave)
-      character*10	stations(maxwave)
+      character*40 fname(maxwave)
+      character*30 sname(maxwave)
+      character*10 stations(maxwave)
 
 
-      complex*8	dS1(maxwave, 3, maxdata)
-      complex*8	dS2(maxwave, 3,3,maxdata)
-      character*100	filename, sta
-      real*4		freq_ps(maxdata), point_source_real(maxdata), point_source_imag(maxdata)
-      complex*8	point_source(maxwave, maxdata)
-      integer		nlines(maxwave)
+      complex*8 dS1(maxwave, 3, maxdata)
+      complex*8 dS2(maxwave, 3,3,maxdata)
+      character*100 filename, sta
+      real*4 freq_ps(maxdata)
+      real*4 point_source_real(maxdata), point_source_imag(maxdata)
+      complex*8 point_source(maxwave, maxdata)
+      integer nlines(maxwave)
 
 !						Info and Logical unit common
 !						block used by NA routines
 
       common /NA_IO/lu_na,lu_out,lu_sum,lu_det,lu_sob,lu_dis,
-     &              lu_nad,verbose,debug,timing,summary
+     1              lu_nad,verbose,debug,timing,summary
 
 
       common /rfi_com/observed_data, weight,
-     &                  time_begin, time_end,  ndata,
-     &                  nwave, lu_mod, fname, sname, stations,
-     &dS1, dS2, point_source, freq_obs, nlines,
-     &amp_obs_real, amp_obs_imag
+     1                time_begin, time_end,  ndata,
+     1                nwave, lu_mod, fname, sname, stations,
+     1                dS1, dS2, point_source, freq_obs, nlines,
+     1                amp_obs_real, amp_obs_imag
 
 
       nlayers = 6
@@ -480,14 +483,14 @@
         do i=1,ns
           jj = np + i
           call display_model
-     &         (lu_mod, i, models(1,jj), nd, misfit(jj) )
+     1         (lu_mod, i, models(1,jj), nd, misfit(jj) )
         end do
         np = np + ns
         ns = ns2
 
         call output_summary(
-     &               lu_out2, lu_sum, it-1, models(1,mopt), nd,
-     &               np, mfitmin, mfitmean, mfitminc, mopt)
+     1               lu_out2, lu_sum, it-1, models(1,mopt), nd,
+     1               np, mfitmin, mfitmean, mfitminc, mopt)
       end do
 
 !        Write out final model
@@ -506,16 +509,16 @@
       end do
 
       write(*,*) "PEPPAAAAAAAAAAA"
-      write(111,*) "************************  INITIAL MISFIT ************************ "
-      call forward_modelling(
-     &      rmodel, nd, ndata, nwave, stations, predicted_data, observed_data,
-     &dS1, dS2, point_source, freq_obs, nlines, .false., .true.)
+      write(111,*) "************** INITIAL MISFIT ****************"
+      call forward_modelling(rmodel, nd, ndata, nwave, stations, 
+     1                       predicted_data, observed_data,
+     1                       dS1, dS2, point_source, freq_obs, nlines, 
+     1                       .false., .true.)
 
 
-      call calcmisfit(
-     &       predicted_data,
-     &       observed_data, nlines,
-     &       weight, nwave, misfitval, fname, amp_obs_real, amp_obs_imag, .true.)
+      call calcmisfit(predicted_data,observed_data, nlines,
+     1                weight, nwave, misfitval, fname, amp_obs_real, 
+     1                amp_obs_imag, .true.)
 
       write(111,*) "***"
       write(111,*) "Total misfit: ", misfitval
@@ -523,16 +526,16 @@
 
 !	   repeat forward modelling for optimum model
 
-      write(111,*) "************************ BEST MODEL ************************ "
-      call forward_modelling(
-     &    rmodel, nd, ndata, nwave, stations, predicted_data, observed_data,
-     &dS1, dS2, point_source, freq_obs, nlines, .true., .false.)
+      write(111,*) "********** BEST MODEL ***************** "
+      call forward_modelling(rmodel, nd, ndata, nwave, stations, 
+     1                       predicted_data, observed_data,
+     1                       dS1, dS2, point_source, freq_obs, nlines,
+     1                       .true., .false.)
 
 
-      call calcmisfit(
-     &     predicted_data,
-     &     observed_data, nlines,
-     &     weight, nwave, misfitval, fname, amp_obs_real, amp_obs_imag, .true.)
+      call calcmisfit(predicted_data, observed_data, nlines, 
+     1                weight, nwave, misfitval, fname, amp_obs_real,
+     1                amp_obs_imag, .true.)
 
       write(111,*) "***"
       write(111,*) "total misfit: ", misfitval
