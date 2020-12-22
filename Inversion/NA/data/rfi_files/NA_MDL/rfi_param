@@ -1,8 +1,0 @@
-6 0
-0.0     0.0   0    0.0   0.0  0   0.00  0.00 0  spatial_centroid: |rc| (km), rc ang (a-clockwisetostrike).
--10  10  0    0.0   0.0  0   0.00  0.00 0     delta_time_centroid(s)
-0.0   31.18  0    0.0   0.0  0   0.00  0.00 0     duration(s)
-0.0    10.0    0  -90.0  90.0  0   0.00  0.00 0     velocity: abs_value, beta (degrees)
-4.6188  5.1962 0  0.7    0.7   0  -90.00  90.00 0    char. dimensions: Amax (km), Amin/Amax, phi
-99.   99.    0 42.  42.  0   0.00  0.00 0     strike, dip (degrees)
-
