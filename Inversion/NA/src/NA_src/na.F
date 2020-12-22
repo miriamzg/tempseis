@@ -1376,8 +1376,6 @@ c                write(*,*)'In ',iproc,' about to MPI_IPROBE'
 
         end if
 
-
-
         
 c						transform all models
 c						back to scaled units
