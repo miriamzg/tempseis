@@ -54,7 +54,7 @@ user :
 
 all:: $(TYPE)
 
-serial:: user na user_main utl mes
+serial:: user na user_main #utl mes
 
 mpi:: user na_mpi user_main_mpi utl mes_mpi
 

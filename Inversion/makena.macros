@@ -20,7 +20,7 @@
 #
 CC      = /usr/bin/gcc                   # C compiler
 F77     = /usr/local/bin/gfortran                 # Fortran compiler
-FFLAGS  = -O   -ffixed-line-length-300          # Fortran compiler options
+FFLAGS  = -O   -ffixed-line-length-300  -fallow-argument-mismatch        # Fortran compiler options
 CFLAGS  = -O		        # C compiler options
 AR      = /usr/bin/ar           # archiver
 XFLAGS  = -L/usr/X11R6/lib -lX11  # X library flags
