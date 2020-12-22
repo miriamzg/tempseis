@@ -37,7 +37,7 @@ c
 	subroutine read_vmodelNA(
      &          lu_vel, range, scales, moddim)
 c
-        include 'rfi_param.inc'
+        include 'homti_param.inc'
 c
 	real*4		range(2,*)
 	real		scales(*)

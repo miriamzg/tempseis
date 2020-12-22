@@ -12,7 +12,7 @@ c
      &		lu, rmodel, moddim, misfitval,  
      &		q_alpha, q_beta )
 c
-	include 'rfi_param.inc'
+	include 'homti_param.inc'
 c
 c
 	real*4		rmodel(maxmoddim)

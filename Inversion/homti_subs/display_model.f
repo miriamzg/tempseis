@@ -12,7 +12,7 @@ c
 	subroutine display_model(
      &		lu, imod, rmodel, moddim, misfitval )
 c
-	include	'rfi_param.inc'
+	include	'homti_param.inc'
 c
 c
 	real*4		rmodel(maxmoddim), pi, DTOR, RDOT, vel_angle_rad, phi_rad

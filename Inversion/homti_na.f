@@ -8,7 +8,7 @@
 !------------------------------------------------------------------------
       subroutine user_init(nd,ranges,scales)
 
-      include 'rfi_subs/rfi_param.inc'
+      include 'homti_subs/homti_param.inc'
 
       real*4 ranges(2,*), scales(*)
       real*4 observed_data_r(maxdata,maxwave),
@@ -298,7 +298,7 @@
 !------------------------------------------------------------------------
       subroutine forward(nd,model,lppd)
 
-      include 'rfi_subs/rfi_param.inc'
+      include 'homti_subs/homti_param.inc'
 
       real*4 lppd, misfitval
 
@@ -389,7 +389,7 @@
      1             (nd, ntot, models, misfit, ns1, ns2, itmax,
      1              nh_max, nh, header)
 
-      include 'rfi_subs/rfi_param.inc'
+      include 'homti_subs/homti_param.inc'
 
 !						NA variables and arrays
       real*4 models(nd,*)

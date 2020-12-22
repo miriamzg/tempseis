@@ -3,7 +3,7 @@
      1       weight, nwaves, totmisfit, fname, amp_obs_real,
      1       amp_obs_imag, write_best )
 
-      include 'rfi_param.inc'
+      include 'homti_param.inc'
 
       complex*8 observed_data(maxdata,maxwave),
      1          predicted_data(maxdata,maxwave),

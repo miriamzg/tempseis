@@ -4,7 +4,7 @@
      1           dS1, dS2, point_source, freq_obs, nlines, output_final,
      1           initial_misfit)
 
-      include 'rfi_param.inc'
+      include 'homti_param.inc'
 
       parameter     ( v60 = 8.043 )
       parameter     ( rad = 0.017453292 )
