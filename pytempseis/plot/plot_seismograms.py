@@ -1,7 +1,7 @@
 import sys
 import numpy as np
 import glob
-import matplotlib.pylab as plt
+import matplotlib.pyplot as plt
 from matplotlib import ticker
 
 formatter = ticker.ScalarFormatter(useMathText=True)
@@ -14,7 +14,6 @@ def time_windowing(list):
     integral = []
     somma = 0.0
     for i in range(0, len(list.real)):
-        # print trRsynt.data[i]
         somma += abs(list[i].real)
         integral.append(somma)
 
@@ -41,7 +40,7 @@ def time_windowing(list):
 results_folder = sys.argv[1]
 observed_folder = f"{results_folder}/observed/"
 predicted_folder = f"{results_folder}/best_predicted/"
-point_source_folder = "../NA/src/rfi_subs/point_source/"
+point_source_folder = "../../Inversion/data/point_source/"
 
 comp_list = ["Z", "R", "T"]
 for wavetype in ["P", "S"]:
@@ -186,5 +185,5 @@ for wavetype in ["P", "S"]:
         rotation="vertical",
         fontsize=20,
     )
-    plt.savefig(results_folder + f"{results_folder}/seismograms_{wavetype}TEST2.pdf")
+    plt.savefig(f"{results_folder}/seismograms_{wavetype}TEST2.png")
     plt.close()

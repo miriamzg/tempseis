@@ -1,4 +1,4 @@
-import matplotlib.pylab as plt
+import matplotlib.pyplot as plt
 import sys
 
 

@@ -1,14 +1,13 @@
-import os
-import matplotlib.pylab as plt
+import matplotlib.pyplot as plt
 import numpy as np
 import sys
-from matplotlib.pylab import cm
+from matplotlib import cm
 from operator import itemgetter
 
 # TODO: Use seaborn pairplot.  See code from Azores RWE paper
 
 result_folder = sys.argv[1]
-result_file = f"{result_folder}/rfi_models"
+result_file = f"{result_folder}/homti_models"
 
 perc_threshold = 20.0  # %
 
