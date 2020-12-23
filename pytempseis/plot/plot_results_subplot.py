@@ -6,7 +6,7 @@ from operator import itemgetter
 import operator
 
 result_folder = sys.argv[1]
-result_file = f"{result_folder}/rfi_models"
+result_file = f"{result_folder}/homti_models"
 scalar_moment_file = f"{result_folder}/scalar_moment.txt"
 
 perc_treshold = 5.0
@@ -41,7 +41,7 @@ c = 1
 
 # defining Mo from where it is saved in a text file
 Mo = open(scalar_moment_file).readlines()
-Mo = int(Mo[0])
+Mo = float(Mo[0])
 
 lines = open(result_file).readlines()
 mod_initial = int(lines[0].split()[0])
@@ -292,15 +292,15 @@ plt.close()
 # ==================================================================
 plt.figure(1, figsize=(8.27, 11.69))
 plt.subplot(711)
-plt.scatter(iindex, zip(*mmisfit)[0], color="black", s=2, linewidth=0)
+plt.scatter(iindex, next(zip(*mmisfit)), color="black", s=2, linewidth=0)
 plt.ylabel("Misfit")
 plt.xlabel("# model")
 plt.xlim(min(iindex), iindex[-1000])
-plt.ylim(0.1 * min(zip(*mmisfit)[0]), 10 * max(zip(*mmisfit)[0]))
+plt.ylim(0.1 * min(next(zip(*mmisfit))), 10 * max(next(zip(*mmisfit))))
 
 plt.subplot(712)
 plt.scatter(iindex, AAmax_real, color="black", s=2, linewidth=0)
-plt.scatter(iindex_bests, zip(*AAmax_bests)[0], color="red", s=2, linewidth=0, zorder=2)
+plt.scatter(iindex_bests, next(zip(*AAmax_bests)), color="red", s=2, linewidth=0, zorder=2)
 plt.axhline(best_Amax, color="0.5", zorder=9)
 plt.axhline(min_Amax, color="0.5", linestyle="--", zorder=9)
 plt.axhline(max_Amax, color="0.5", linestyle="--", zorder=9)
@@ -311,7 +311,7 @@ plt.xlabel("# model")
 plt.subplot(713)
 plt.scatter(iindex, AAmin_real, color="black", s=2, linewidth=0)
 plt.scatter(
-    iindex_bests, zip(*AAmin_bests)[0], color="red", s=2, linewidth=0, zorder=10
+    iindex_bests, next(zip(*AAmin_bests)), color="red", s=2, linewidth=0, zorder=10
 )
 plt.ylabel("$A_{min}$ (km)")
 plt.xlabel("# model")
@@ -322,7 +322,7 @@ plt.axhline(max_Amin, color="0.5", linestyle="--", zorder=9)
 
 plt.subplot(714)
 plt.scatter(iindex, pphi, color="black", s=2, linewidth=0)
-plt.scatter(iindex_bests, zip(*pphi_bests)[0], color="red", s=2, linewidth=0, zorder=10)
+plt.scatter(iindex_bests, next(zip(*pphi_bests)), color="red", s=2, linewidth=0, zorder=10)
 plt.ylabel("$\Phi$ (deg)")
 plt.xlabel("# model")
 plt.axhline(best_phi, color="0.5", zorder=9)
@@ -333,7 +333,7 @@ plt.xlim(min(iindex), iindex[-1000])
 plt.subplot(715)
 plt.scatter(iindex, dduration_real, color="black", s=2, linewidth=0)
 plt.scatter(
-    iindex_bests, zip(*dduration_bests)[0], color="red", s=2, linewidth=0, zorder=10
+    iindex_bests, next(zip(*dduration_bests)), color="red", s=2, linewidth=0, zorder=10
 )
 plt.ylabel("$\Delta$ t (s)")
 plt.xlabel("# model")
@@ -345,7 +345,7 @@ plt.axhline(max_duration, color="0.5", linestyle="--", zorder=9)
 plt.subplot(716)
 plt.scatter(iindex, vv_abs, color="black", s=2, linewidth=0)
 plt.scatter(
-    iindex_bests, zip(*vv_abs_bests)[0], color="red", s=2, linewidth=0, zorder=10
+    iindex_bests, next(zip(*vv_abs_bests)), color="red", s=2, linewidth=0, zorder=10
 )
 plt.ylabel("|v| (km/s)")
 plt.xlabel("# model")
@@ -357,7 +357,7 @@ plt.axhline(max_v_abs, linestyle="--", zorder=9)
 plt.subplot(717)
 plt.scatter(iindex, vv_ang, color="black", s=2, linewidth=0)
 plt.scatter(
-    iindex_bests, zip(*vv_angle_bests)[0], color="red", s=2, linewidth=0, zorder=10
+    iindex_bests, next(zip(*vv_angle_bests)), color="red", s=2, linewidth=0, zorder=10
 )
 plt.ylabel("v angle (deg)")
 plt.xlabel("# model")
@@ -462,7 +462,7 @@ plt.subplots_adjust(
 )
 it = plt.scatter(
     AAmax_real,
-    zip(*mmisfit)[0],
+    next(zip(*mmisfit)),
     c=nmodel,
     s=30,
     vmin=min(nmodel),
@@ -473,7 +473,7 @@ it = plt.scatter(
 plt.xlabel("$A_{max}$ (km)")
 plt.ylabel("Misfit")
 plt.yscale("log")
-plt.ylim(min(zip(*mmisfit)[0]), max(zip(*mmisfit)[0]))
+plt.ylim(min(next(zip(*mmisfit))), max(next(zip(*mmisfit))))
 plt.text(-0.05, 1.05, "a)", fontweight="bold", transform=ax1.transAxes, size=20)
 
 ###################
@@ -484,7 +484,7 @@ plt.subplots_adjust(
 )
 it = plt.scatter(
     AAmin_real,
-    zip(*mmisfit)[0],
+    next(zip(*mmisfit)),
     c=nmodel,
     s=30,
     vmin=min(nmodel),
@@ -495,7 +495,7 @@ it = plt.scatter(
 plt.xlabel("$A_{min}$ (km)")
 plt.ylabel("Misfit")
 plt.yscale("log")
-plt.ylim(min(zip(*mmisfit)[0]), max(zip(*mmisfit)[0]))
+plt.ylim(min(next(zip(*mmisfit))), max(next(zip(*mmisfit))))
 plt.text(-0.05, 1.05, "b)", fontweight="bold", transform=ax2.transAxes, size=20)
 
 
@@ -505,7 +505,7 @@ plt.subplots_adjust(
 )
 it = plt.scatter(
     pphi,
-    zip(*mmisfit)[0],
+    next(zip(*mmisfit)),
     c=nmodel,
     s=30,
     vmin=min(nmodel),
@@ -516,7 +516,7 @@ it = plt.scatter(
 plt.xlabel("$\Phi$ ($^\circ$)")
 plt.ylabel("Misfit")
 plt.yscale("log")
-plt.ylim(min(zip(*mmisfit)[0]), max(zip(*mmisfit)[0]))
+plt.ylim(min(next(zip(*mmisfit))), max(next(zip(*mmisfit))))
 plt.text(-0.05, 1.05, "c)", fontweight="bold", transform=ax3.transAxes, size=20)
 
 ax4 = plt.subplot(424)
@@ -525,7 +525,7 @@ plt.subplots_adjust(
 )
 it = plt.scatter(
     dduration_real,
-    zip(*mmisfit)[0],
+    next(zip(*mmisfit)),
     c=nmodel,
     s=30,
     vmin=min(nmodel),
@@ -536,7 +536,7 @@ it = plt.scatter(
 plt.xlabel("$\Delta$ t (s)")
 plt.ylabel("Misfit")
 plt.yscale("log")
-plt.ylim(min(zip(*mmisfit)[0]), max(zip(*mmisfit)[0]))
+plt.ylim(min(next(zip(*mmisfit))), max(next(zip(*mmisfit))))
 plt.text(-0.05, 1.05, "d)", fontweight="bold", transform=ax4.transAxes, size=20)
 
 
@@ -546,7 +546,7 @@ plt.subplots_adjust(
 )
 it = plt.scatter(
     vv_abs,
-    zip(*mmisfit)[0],
+    next(zip(*mmisfit)),
     c=nmodel,
     s=30,
     vmin=min(nmodel),
@@ -557,7 +557,7 @@ it = plt.scatter(
 plt.xlabel("$v_0$ (km s $^{-1}$)")
 plt.ylabel("Misfit")
 plt.yscale("log")
-plt.ylim(min(zip(*mmisfit)[0]), max(zip(*mmisfit)[0]))
+plt.ylim(min(next(zip(*mmisfit))), max(next(zip(*mmisfit))))
 plt.text(-0.05, 1.05, "e)", fontweight="bold", transform=ax5.transAxes, size=20)
 
 ax6 = plt.subplot(426)
@@ -566,7 +566,7 @@ plt.subplots_adjust(
 )
 it = plt.scatter(
     vv_ang,
-    zip(*mmisfit)[0],
+    next(zip(*mmisfit)),
     c=nmodel,
     s=30,
     vmin=min(nmodel),
@@ -577,7 +577,7 @@ it = plt.scatter(
 plt.xlabel("$\Theta$ ($^\circ$)")
 plt.ylabel("Misfit")
 plt.yscale("log")
-plt.ylim(min(zip(*mmisfit)[0]), max(zip(*mmisfit)[0]))
+plt.ylim(min(next(zip(*mmisfit))), max(next(zip(*mmisfit))))
 plt.text(-0.05, 1.05, "f)", fontweight="bold", transform=ax6.transAxes, size=20)
 
 ax6 = plt.subplot(427)
@@ -586,7 +586,7 @@ plt.subplots_adjust(
 )
 it = plt.scatter(
     Sstress_drop,
-    zip(*mmisfit)[0],
+    next(zip(*mmisfit)),
     c=nmodel,
     s=30,
     vmin=min(nmodel),
@@ -597,7 +597,7 @@ it = plt.scatter(
 plt.xlabel("$\Delta \sigma$ (MPa)")
 plt.ylabel("Misfit")
 plt.yscale("log")
-plt.ylim(min(zip(*mmisfit)[0]), max(zip(*mmisfit)[0]))
+plt.ylim(min(next(zip(*mmisfit))), max(next(zip(*mmisfit))))
 plt.text(-0.05, 1.05, "g)", fontweight="bold", transform=ax6.transAxes, size=20)
 
 ax7 = plt.subplot(428)
