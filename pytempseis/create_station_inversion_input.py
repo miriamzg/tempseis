@@ -57,7 +57,7 @@ def calculate_initial_compass_bearing(pointA, pointB):
     return compass_bearing
 
 
-parser = ArgumentParser(description="Builds station plots and rfi.in")
+parser = ArgumentParser(description="Builds station plots and homti.in")
 parser.add_argument("database", type=str, help="Path to database")
 parser.add_argument("event_code", type=str, help="GCMT event code")
 parser.add_argument("filtering", type=str)
@@ -96,8 +96,8 @@ print("Writing station file...")
 filelist = glob.glob(os.path.join(folder, args.filtering, "observed_data", "*"))
 outlines = []
 outlines.append("#\n# Input file for receiver function inversion specific information\n#\n")
-outlines.append("rfi_param                              /* input model   */\n")
-outlines.append("rfi_models                             /* output models */\n")
+outlines.append("homti_param                              /* input model   */\n")
+outlines.append("homti_models                             /* output models */\n")
 nwave = 0
 
 for wt in ["P", "S"]:
@@ -163,5 +163,5 @@ for wt in ["P", "S"]:
 outlines.insert(3, f"{nwave}\t\t\t\t\t/* nwave */\n")
 outlines.append("1                                       /* iwrite_models */")
 
-with open("rfi.in", "w") as outfile:
+with open("homti.in", "w") as outfile:
     outfile.writelines(outlines)
