@@ -34,6 +34,9 @@ endif
 
 all: subs main
 
+na:
+	cd $(NA_DIR)/src; make -f Makefile all
+
 clean:
 	rm -f ../bin/*
 	rm -f $(SUBS_OBJ)
