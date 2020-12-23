@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #change these parameters for each event 
-export file="CMTSOLUTION_201810131110A_GCMT"
-export filtering="fortran_format_18_40_18_60_45_100" #from the database event folder 
+export file="CMTSOLUTION_201310251710A_GCMT"
+export filtering="fortran_format_25_60_25_100_45_100" #from the database event folder 
 export duration="6.24" #twice the half-duration/sqrt(3)
 export strike1="99" #from GCMT catalogue 
 export dip1="42"
@@ -10,29 +10,61 @@ export strike2="352"
 export dip2="74"
 export lat="52.71" 
 export lon="153.43" 
-export path="" #location of tempseis
+export path=${HOME}"/Desktop/tempseis" #location of tempseis
+
+export database=database # location of database relative to path
 
 ################################################################################
+event_code="$file"
+inversion_code="test7_$a"
 
-OBS_DATA_DIR=Inversion/NA/data/rfi_files/OBS  # these will need to change
-POINT_SOURCE_DIR=Inversion/NA/src/rfi_subs/point_source
-KERNELS_DIR=Inversion/NA/src/rfi_subs/kernels
+mkdir ${path}/Results/${event_code}
+results_folder=${path}/Results/${event_code}/${inversion_code}
+mkdir ${results_folder}
+mkdir ${results_folder}/observed/
+mkdir ${results_folder}/best_predicted/
+
+OBS_DATA_DIR=${path}/Inversion/data/obs
+POINT_SOURCE_DIR=${path}/Inversion/data/point_source
+KERNELS_DIR=${path}/Inversion/data/kernels
 
 rm ${OBS_DATA_DIR}/*
 rm ${POINT_SOURCE_DIR}/*
 rm ${KERNELS_DIR}/*
 
-cp database/$file/$filtering/observed_data/* ${OBS_DATA_DIR}/
-cp database/$file/$filtering/point_source/* ${POINT_SOURCE_DIR}/
-cp database/$file/$filtering/derivatives/* ${KERNELS_DIR}/
+cp ${path}/$database/$file/$filtering/observed_data/* ${OBS_DATA_DIR}/
+cp ${path}/$database/$file/$filtering/point_source/* ${POINT_SOURCE_DIR}/
+cp ${path}/$database/$file/$filtering/derivatives/* ${KERNELS_DIR}/
 
-python pytempseis/create_station_file_azimut.py $file $filtering ${OBS_DATA_DIR}
+cd pytempseis
+python create_station_inversion_input.py ${path}/$database $file $filtering
+python plot/plot_station_azimuth.py ${path}/$database $file $filtering
+python scalar_moment.py ${file} ${results_folder}
+mv homti.in ${path}/Inversion/data/
+mv az_coverageTEST_*.pdf ${results_folder}
+mv *.png ${results_folder}
 
-cp rfi.in $path/TEMPSEIS_PACKAGE/Inversion/NA/data/rfi_files/
+cd ${path}/Inversion/src
+make clean
+make all
+cd ../data
+../bin/homti_na
 
-###############################################################################################################################################################
+cp homti_param ${results_folder}
+cp homti_models ${results_folder}
+cp homti.in ${results_folder}
+cp na.in  ${results_folder}
+mv FINAL/*observed.asc ${results_folder}/observed/
+mv FINAL/*best_predicted.asc ${results_folder}/best_predicted/
+cp station_mft.asc ${results_folder}
+cp best_model.asc ${results_folder}
 
-cd $path/TEMPSEIS_PACKAGE/Inversion/NA/data
+#running plotting scripts 
+cd $path/pytempseis/plot
+python plot_results_subplot.py ${results_folder}
+python plot_fault_results.py ${results_folder}            # uncomment for real data test
+python plot_correlations.py ${results_folder}
+python plot_station_map_body_surface.py ${results_folder} + lat + lon
+python plot_seismograms.py ${results_folder}
 
-./jobaspect2_confined
 
