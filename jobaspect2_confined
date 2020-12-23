@@ -4,7 +4,7 @@
 for b  in 28.86751346 14.4337567 9.62250449 7.21687836 5.77350269 4.81125205 4.12393049 3.60843918 3.207501495 2.88675135
 do
 a=$(bc <<< "scale=3;5/($b*1.732050807568877)")
-cat > $path/TEMPSEIS_PACKAGE/Inversion/NA/data/rfi_files/NA_MDL/rfi_param << *
+cat > $path/Inversion/data/homti_param << *
 6 0
 0.0     0.0   0    0.0   0.0  0   0.00  0.00 0  spatial_centroid: |rc| (km), rc ang (a-clockwisetostrike).
 -10  10  0    0.0   0.0  0   0.00  0.00 0     delta_time_centroid(s)
@@ -14,15 +14,15 @@ $b  100.0 0  $a    $a   0  -90.00  90.00 0    char. dimensions: Amax (km), Amin/
 $strike1.   $strike1.    0 $dip1.  $dip1.  0   0.00  0.00 0     strike, dip (degrees)
 
 *
-cd $path/TEMPSEIS_PACKAGE
-./run_inversion
+cd $path
+./total_proc_script
 
 cd -
 #looping over different aspect ratios (Amin/Amax) for the other fault plane 
 for b in 28.86751346 14.4337567 9.62250449 7.21687836 5.77350269 4.81125205 4.12393049 3.60843918 3.207501495 2.88675135
 do
 a=$(bc <<< "scale=3;5/($b*1.732050807568877)")
-cat > $path/TEMPSEIS_PACKAGE/Inversion/NA/data/rfi_files/NA_MDL/rfi_param << *
+cat > $path/Inversion/data/homti_param << *
 6 0
 0.0     0.0   0    0.0   0.0  0   0.00  0.00 0  spatial_centroid: |rc| (km), rc ang (a-clockwisetostrike).
 -10  10  0    0.0   0.0  0   0.00  0.00 0     delta_time_centroid(s)
@@ -32,7 +32,7 @@ $b  100.0   0    $a  $a  0  -90.00  90.00 0    char. dimensions: Amax (km), Amin
 $strike2.   $strike2.    0 $dip2.  $dip2.  0   0.00  0.00 0     strike, dip (degrees)
 
 *
-cd $path/TEMPSEIS_PACKAGE
-./run_inversion
+cd $path
+./total_proc_script
 
 done 
