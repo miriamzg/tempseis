@@ -82,7 +82,7 @@
       open(123,file="station_mft.asc", status="unknown")
       open(111,file="best_model.asc", status="unknown")
 
-      open(lu_rfi,file='rfi_files/rfi.in',status='old')
+      open(lu_rfi,file='./homti.in',status='old')
       read(lu_rfi,*)
       read(lu_rfi,*)
       read(lu_rfi,*)
@@ -93,14 +93,14 @@
       if(lroot)write(lu_out,*)' Opening rfi files...'
       read(lu_rfi,'(a)') chars
       lw=lofw(chars)
-      write(kname,'("rfi_files/NA_MDL/",a,a1)') chars(1:lw),char(0)
+      write(kname,'("./",a,a1)') chars(1:lw),char(0)
       if(lroot)write(lu_out,*)
       if(lroot)write(lu_out,*) '* Now open ... ',kname(1:lw+17)
       open(lu_vel,file=kname,status='old')
 
       read(lu_rfi,'(a)') chars
       lw=lofw(chars)
-      write(kname,'("rfi_files/NA_MDL/",a,a1)') chars(1:lw),char(0)
+      write(kname,'("./",a,a1)') chars(1:lw),char(0)
       if(lroot)write(lu_out,*)
       if(lroot)write(lu_out,*) '* Now open ... ',kname(1:lw+17)
       open(lu_mod, file=kname, status='replace')
@@ -117,9 +117,9 @@
         read(lu_rfi,'(a)') chars
         lw=lofw(chars)
         stations(iw) = chars(1:lw)
-        write(fname(iw),'("rfi_files/OBS/",a,a3,a1)') chars(1:lw),
+        write(fname(iw),'("./obs/",a,a3,a1)') chars(1:lw),
      1                                               '_ff',char(0)
-        write(sname(iw),'("rfi_files/SYNT/",a,a3,a1)') chars(1:lw),
+        write(sname(iw),'("./SYNT/",a,a3,a1)') chars(1:lw),
      1                                                '_ff',char(0)
 
         if(lroot)write(lu_out,*)
@@ -161,7 +161,7 @@
 !----------------------------------------------
 !		load kernels first order
 !----------------------------------------------
-        write(filename, '("../src/rfi_subs/kernels/",a,a5,a1)') 
+        write(filename, '("kernels/",a,a5,a1)') 
      1        sta(1:lw),'_dSdx',char(0)
         open(11, file=filename, status="old")
         read(11, *) nlines(i)
@@ -172,7 +172,7 @@
         end do
         close(11)
 
-        write(filename, '("../src/rfi_subs/kernels/",a,a5,a1)') 
+        write(filename, '("kernels/",a,a5,a1)') 
      1        sta(1:lw),'_dSdy',char(0)
         open(11, file=filename, status="old")
         read(11, *) nlines(i)
@@ -182,7 +182,7 @@
           dS1(i, 2,j)=complex(dS1_real(2,j),dS1_imag(2,j))
         end do
         close(11)
-        write(filename, '("../src/rfi_subs/kernels/",a,a5,a1)') 
+        write(filename, '("kernels/",a,a5,a1)') 
      1        sta(1:lw),'_dSdz',char(0)
         open(11, file=filename, status="old")
         read(11, *) nlines(i)
@@ -197,7 +197,7 @@
 !		load kernels second order
 !----------------------------------------------
 
-        write(filename, '("../src/rfi_subs/kernels/",a,a7,a1)') 
+        write(filename, '("kernels/",a,a7,a1)') 
      1        sta(1:lw),'_dS2dx2',char(0)
         open(11, file=filename, status="old")
         read(11, *) nlines(i)
@@ -208,7 +208,7 @@
         end do
         close(11)
 
-        write(filename, '("../src/rfi_subs/kernels/",a,a7,a1)') 
+        write(filename, '("kernels/",a,a7,a1)') 
      1        sta(1:lw),'_dSdxdy',char(0)
         open(11, file=filename, status="old")
         read(11, *) nlines(i)
@@ -219,7 +219,7 @@
         end do
         close(11)
 
-        write(filename, '("../src/rfi_subs/kernels/",a,a7,a1)') 
+        write(filename, '("kernels/",a,a7,a1)') 
      1        sta(1:lw),'_dSdxdz',char(0)
         open(11, file=filename, status="old")
         read(11, *) nlines(i)
@@ -233,7 +233,7 @@
         dS2_freq(2,1,:) = dS2_freq(1,2,:)
         dS2(i, 2,1,:) = dS2(i, 1,2,:)
 
-        write(filename, '("../src/rfi_subs/kernels/",a,a7,a1)') 
+        write(filename, '("kernels/",a,a7,a1)') 
      1        sta(1:lw),'_dS2dy2',char(0)
         open(11, file=filename, status="old")
         read(11, *) nlines(i)
@@ -244,7 +244,7 @@
         end do
         close(11)
 
-        write(filename, '("../src/rfi_subs/kernels/",a,a7,a1)') 
+        write(filename, '("kernels/",a,a7,a1)') 
      1        sta(1:lw),'_dSdydz',char(0)
         open(11, file=filename, status="old")
         read(11, *) nlines(i)
@@ -262,7 +262,7 @@
         dS2_freq(3,2,:) = dS2_freq(2,3,:)
         dS2(i, 3,2,:) = dS2(i, 2,3,:)
 
-        write(filename, '("../src/rfi_subs/kernels/",a,a7,a1)') 
+        write(filename, '("kernels/",a,a7,a1)') 
      1        sta(1:lw),'_dS2dz2',char(0)
         open(11, file=filename, status="old")
         read(11, *) nlines(i)
@@ -276,7 +276,7 @@
 !		read point source solution
 !------------------------------------------------------------------------
 
-        write(filename, '("../src/rfi_subs/point_source/",a,a3,a1)') 
+        write(filename, '("point_source/",a,a3,a1)') 
      1        sta(1:lw),'_ps',char(0)
         open(11, file=filename, status="old")
         read(11,*) nlines(i)
