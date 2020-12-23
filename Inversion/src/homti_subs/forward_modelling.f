@@ -161,7 +161,7 @@
         do i=1,nwave
           sta = stations(i)
           lw=lofw(sta)
-          write(filename, '("./rfi_files/TEMP/",a,a14,a1)')
+          write(filename, '("TEMP/",a,a14,a1)')
      1                   sta(1:lw),'_predicted.asc',char(0)
           open(12, file=filename, status="replace")
           do j=1,nlines(i)
@@ -176,7 +176,7 @@
         do i=1,nwave
           sta = stations(i)
           lw=lofw(sta)
-          write(filename, '("./rfi_files/TEMP/",a,a13,a1)')
+          write(filename, '("TEMP/",a,a13,a1)')
      1                   sta(1:lw),'_observed.asc',char(0)
           open(12, file=filename, status="replace")
           do j=1,nlines(i)
@@ -194,7 +194,7 @@
         do i=1,nwave
           sta = stations(i)
           lw=lofw(sta)
-          write(filename, '("./rfi_files/FINAL/",a,a19,a1)')
+          write(filename, '("FINAL/",a,a19,a1)')
      &    sta(1:lw),'_best_predicted.asc',char(0)
           open(12, file=filename, status="replace")
           do j=1,nlines(i)
@@ -209,7 +209,7 @@
         do i=1,nwave
           sta = stations(i)
           lw=lofw(sta)
-          write(filename, '("./rfi_files/FINAL/",a,a13,a1)')
+          write(filename, '("FINAL/",a,a13,a1)')
      &    sta(1:lw),'_observed.asc',char(0)
           open(12, file=filename, status="replace")
           do j=1,nlines(i)
