@@ -7,6 +7,6 @@ setup(
     maintainer_email="augustin.marignier.14@ucl.ac.uk",
     description="Helpful scripts for processing and plotting higher-order moment tensor inversions",
     packages=find_packages(),
-    install_requires=["numpy", "obspy", "matplotlib", 'pyaml'],
+    install_requires=["numpy", "obspy", "matplotlib", "pyaml", "cartopy"],
     extras_require={"dev": ["black", "flake8"]},
 )
