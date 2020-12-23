@@ -60,16 +60,15 @@ def calculate_initial_compass_bearing(pointA, pointB):
     return compass_bearing
 
 
-parser = ArgumentParser(description="Builds station plots and rfi.in")
+parser = ArgumentParser(description="Builds station plots and homti.in")
+parser.add_argument("database", type=str, help="Path to database")
 parser.add_argument("event_code", type=str, help="GCMT event code")
 parser.add_argument("filtering", type=str)
-parser.add_argument("datadir", type=str, help="Directory with observed data files")
-parser.add_argument("--no_selection_file", action="store_true")
-parser.add_argument("--stations_file", type=str, help="File with station details")
 args = parser.parse_args()
 
-folder = os.path.join("..", "database", args.event_code)
+folder = os.path.join(args.database, args.event_code)
 cmt_file = os.path.join(folder, args.event_code)
+stations_file = os.path.join(args.database, "STATIONS")
 
 dist_min_P = 20.0
 dist_max_P = 90.0
@@ -83,21 +82,19 @@ ev_lat = float(lines[4].split()[1])
 ev_lon = float(lines[5].split()[1])
 
 selection_file = os.path.join(folder, args.filtering, "station2use.txt")
-if not args.no_selection_file:
-    data2use = []
-    lines = open(selection_file).readlines()
-    for i in range(1, len(lines)):
-        sta = lines[i].split()[0]
-        comp = lines[i].split()[1]
-        wavetype = lines[i].split()[2]
-        use = lines[i].split()[3]
-        data2use.append([sta, comp, wavetype, use])
+data2use = []
+lines = open(selection_file).readlines()
+for i in range(1, len(lines)):
+    sta = lines[i].split()[0]
+    comp = lines[i].split()[1]
+    wavetype = lines[i].split()[2]
+    use = lines[i].split()[3]
+    data2use.append([sta, comp, wavetype, use])
 
 
-filelist = glob.glob(args.datadir)
+filelist = glob.glob(os.path.join(folder, args.filtering, "observed_data", "*"))
 n = 0
 for wt in ["P", "S"]:
-    print(f"Preparing {wt} waves")
     bbz = []
     if wt == "P":
         dist_min = dist_min_P
@@ -119,7 +116,7 @@ for wt in ["P", "S"]:
         data_name = fl.split("/")[-1].split("_ff")[0]
         comp = fl.split("/")[-1].split("_")[1]
 
-        st_lat, st_lon = get_station_coords(station, args.stations_file)
+        st_lat, st_lon = get_station_coords(station, stations_file)
         dist = distance(st_lat, st_lon, ev_lat, ev_lon)[0]
         st = (st_lat, st_lon)
         ev = (ev_lat, ev_lon)
@@ -164,7 +161,7 @@ for wt in ["P", "S"]:
         data_name = fl.split("/")[-1].split("_ff")[0]
         comp = fl.split("/")[-1].split("_")[1]
 
-        st_lat, st_lon = get_station_coords(station, args.stations_file)
+        st_lat, st_lon = get_station_coords(station, stations_file)
         dist = distance(st_lat, st_lon, ev_lat, ev_lon)[0]
         if wt == "P":
             dist_min = dist_min_P
@@ -189,7 +186,6 @@ for wt in ["P", "S"]:
 
                 if baz >= baz_min and baz <= baz_max:
                     density_sta = 1 / float(counts[i])
-                    print(counts[i], density_sta)
                     break
 
             c = plt.scatter(

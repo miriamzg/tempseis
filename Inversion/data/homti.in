@@ -1,5 +1,5 @@
 #
-# Input file for higher order MT inversion specific information
+# Input file for receiver function inversion specific information
 #
 homti_param                              /* input model   */
 homti_models                             /* output models */

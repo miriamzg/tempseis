@@ -95,7 +95,7 @@ for i in range(1, len(lines)):
 print("Writing station file...")
 filelist = glob.glob(os.path.join(folder, args.filtering, "observed_data", "*"))
 outlines = []
-outlines.append("#\n# Input file for receiver function inversion specific information\n#\n")
+outlines.append("#\n# Input file for higher order MT inversion specific information\n#\n")
 outlines.append("homti_param                              /* input model   */\n")
 outlines.append("homti_models                             /* output models */\n")
 nwave = 0
