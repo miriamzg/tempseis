@@ -1,4 +1,4 @@
-      Program rfi_na
+      Program homti_na
 
 !					Call NA routine to do the work
       call na
@@ -62,7 +62,7 @@
 
       common /NAMPI/iproc,nproc,lroot
 
-      common /rfi_com/observed_data, weight,
+      common /homti_com/observed_data, weight,
      1                time_begin, time_end,  ndata,
      1                nwave, lu_mod, fname, sname, stations,
      1                dS1, dS2, point_source, freq_obs, nlines,
@@ -71,7 +71,7 @@
 !
 !		Set up logical units
 !       LU's for standard input and output
-      lu_rfi  = 15
+      lu_homti  = 15
       lu_out = 6
 
 !		LU for input of velocity model
@@ -82,23 +82,23 @@
       open(123,file="station_mft.asc", status="unknown")
       open(111,file="best_model.asc", status="unknown")
 
-      open(lu_rfi,file='./homti.in',status='old')
-      read(lu_rfi,*)
-      read(lu_rfi,*)
-      read(lu_rfi,*)
+      open(lu_homti,file='./homti.in',status='old')
+      read(lu_homti,*)
+      read(lu_homti,*)
+      read(lu_homti,*)
 
       if(lroot)write(lu_out,*)
       if(lroot)write(lu_out,*)' User routines output'
       if(lroot)write(lu_out,*)
-      if(lroot)write(lu_out,*)' Opening rfi files...'
-      read(lu_rfi,'(a)') chars
+      if(lroot)write(lu_out,*)' Opening homti files...'
+      read(lu_homti,'(a)') chars
       lw=lofw(chars)
       write(kname,'("./",a,a1)') chars(1:lw),char(0)
       if(lroot)write(lu_out,*)
       if(lroot)write(lu_out,*) '* Now open ... ',kname(1:lw+17)
       open(lu_vel,file=kname,status='old')
 
-      read(lu_rfi,'(a)') chars
+      read(lu_homti,'(a)') chars
       lw=lofw(chars)
       write(kname,'("./",a,a1)') chars(1:lw),char(0)
       if(lroot)write(lu_out,*)
@@ -112,9 +112,9 @@
 
 
 !		Read in observed data in SAC format
-      read(lu_rfi,*) nwave
+      read(lu_homti,*) nwave
       do iw=1,nwave
-        read(lu_rfi,'(a)') chars
+        read(lu_homti,'(a)') chars
         lw=lofw(chars)
         stations(iw) = chars(1:lw)
         write(fname(iw),'("./obs/",a,a3,a1)') chars(1:lw),
@@ -126,7 +126,7 @@
         if(lroot)write(lu_out,*) '* Read in data from ',
      1                            fname(iw)(1:lw+18)
 
-        read(lu_rfi,*) weight(iw)
+        read(lu_homti,*) weight(iw)
         if(lroot)write(lu_out,*) '* Weight =',weight(iw)
         if(lroot)write(lu_out,*)' '
 
@@ -152,7 +152,7 @@
 
       end do
 
-      close(lu_rfi)
+      close(lu_homti)
 
 !       read kernels
       do i=1,nwave
@@ -350,7 +350,7 @@
      1              lu_nad,verbose,debug,timing,summary
 
 
-      common /rfi_com/observed_data, weight,
+      common /homti_com/observed_data, weight,
      1                time_begin, time_end,  ndata,
      1                nwave, lu_mod, fname, sname, stations,
      1                dS1, dS2, point_source, freq_obs, nlines,
@@ -436,7 +436,7 @@
      1              lu_nad,verbose,debug,timing,summary
 
 
-      common /rfi_com/observed_data, weight,
+      common /homti_com/observed_data, weight,
      1                time_begin, time_end,  ndata,
      1                nwave, lu_mod, fname, sname, stations,
      1                dS1, dS2, point_source, freq_obs, nlines,
