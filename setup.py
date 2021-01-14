@@ -9,4 +9,12 @@ setup(
     packages=find_packages(),
     install_requires=["numpy", "obspy", "matplotlib", "pyaml", "cartopy"],
     extras_require={"dev": ["black", "flake8"]},
+    package_data={
+        "pytempseis.dataprocessing.lib": [
+            "process_data.pl",
+            "process_syn.pl",
+            "rotate.macro",
+            "rotate.pl",
+        ]
+    },
 )
