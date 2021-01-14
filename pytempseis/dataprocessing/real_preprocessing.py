@@ -1,7 +1,7 @@
 import os
 import glob
 from obspy.core import read
-from pytempseis import _lib
+from pytempseis.dataprocessing.lib import _lib
 
 
 def preprocessing(Event_code, database):

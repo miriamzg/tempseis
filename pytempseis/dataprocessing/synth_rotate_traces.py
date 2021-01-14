@@ -2,7 +2,7 @@ import os
 import glob
 from obspy.core import read
 from obspy.clients.iris import Client
-from pytempseis import _lib
+from pytempseis.dataprocessing.lib import _lib
 
 
 def rotate_traces(event_code, database):
