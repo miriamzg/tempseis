@@ -3,151 +3,154 @@
      1       weight, nwaves, totmisfit, fname, amp_obs_real,
      1       amp_obs_imag, write_best )
 
-      include 'homti_param.inc'
+         include 'homti_param.inc'
 
-      complex*8 observed_data(maxdata,maxwave),
-     1          predicted_data(maxdata,maxwave),
-     1          observed_phase,
-     1          predicted_phase
+         complex*8 observed_data(maxdata,maxwave),
+     1             predicted_data(maxdata,maxwave),
+     1             observed_phase,
+     1             predicted_phase
 
-      real*4 weight(maxwave),
-     1       abs_value_obs, abs_value_synt
-      real*4 real_mft, imag_mft
-      real*4 totmisfit, misfitval, aval_real, aval_imag, aval,
-     1       mft_abs, mft_fft
-      real*4 mft_phase, mft_absolute, amplitude
-      real*4 totmisfit_P,totmisfit_S,totmisfit_W
-      integer n_P, n_S, n_W
+         real*4 weight(maxwave),
+     1          abs_value_obs, abs_value_synt
+         real*4 real_mft, imag_mft
+         real*4 totmisfit, misfitval, aval_real, aval_imag, aval,
+     1          mft_abs, mft_fft
+         real*4 mft_phase, mft_absolute, amplitude
+         real*4 totmisfit_P,totmisfit_S,totmisfit_W
+         integer n_P, n_S, n_W
 
-      integer ndata(maxwave), nwaves
-      character*40 fname(maxwave)
-      character*40 instring, string_r, string1, string2, delim
-      character wavetype
+         integer ndata(maxwave), nwaves
+         character*40 fname(maxwave)
+         character*40 instring, string_r, string1, string2, delim
+         character wavetype
 
-      real*4 amp_obs_real(maxwave),
-     1           amp_obs_imag(maxwave)
-      real*4 a(15)
-      real*4 m
-      real*4 misfit_P_array(maxwave),misfit_S_array(maxwave),
-     1           misfit_W_array(maxwave)
-      real*4 median_P, median_S, median_W
-      logical write_best
+         real*4 amp_obs_real(maxwave),
+     1              amp_obs_imag(maxwave)
+         real*4 a(15)
+         real*4 m
+         real*4 misfit_P_array(maxwave),misfit_S_array(maxwave),
+     1              misfit_W_array(maxwave)
+         real*4 median_P, median_S, median_W
+         logical write_best
 
-      pi = 4.D0*DATAN(1.D0)
+         pi = 4.D0*DATAN(1.D0)
 
 !          misfit between observed and predicted
-      totmisfit=0.0
+         totmisfit=0.0
 
-      totmisfit_P = 0.0
-      totmisfit_S = 0.0
-      totmisfit_W = 0.0
+         totmisfit_P = 0.0
+         totmisfit_S = 0.0
+         totmisfit_W = 0.0
 
-      n_P = 0
-      n_S = 0
-      n_W = 0
+         n_P = 0
+         n_S = 0
+         n_W = 0
 
-      do iw=1,nwaves
-        instring = fname(iw)
-        call reverse_string(instring, string_r)
-        delim = "_"
-        call split_string(string_r, string1, string2, delim)
-        wavetype = string2(1:1)
+         do iw=1,nwaves
+            instring = fname(iw)
+            call reverse_string(instring, string_r)
+            delim = "_"
+            call split_string(string_r, string1, string2, delim)
+            wavetype = string2(1:1)
 
-        aval=0.0
-        aval_real = 0.0
-        aval_imag = 0.0
-        mft_fft = 0.0
-        mft_abs = 0.0
-        mft_phase = 0.0
-        mft_absolute = 0.0
+            aval=0.0
+            aval_real = 0.0
+            aval_imag = 0.0
+            mft_fft = 0.0
+            mft_abs = 0.0
+            mft_phase = 0.0
+            mft_absolute = 0.0
 
-        do i=1,ndata(iw)
-!			----------------------------
-!			Original code, do not edit
-          real_mft = (real(predicted_data(i,iw)) - 
-     1                real(observed_data(i,iw)))**2
-          imag_mft = (imag(predicted_data(i,iw)) - 
-     1                imag(observed_data(i,iw)))**2
-!			----------------------------
-          aval = aval + (real_mft + imag_mft)
+            do i=1,ndata(iw)
+!            ----------------------------
+!            Original code, do not edit
+               real_mft = (real(predicted_data(i,iw)) -
+     1                     real(observed_data(i,iw)))**2
+               imag_mft = (imag(predicted_data(i,iw)) -
+     1                     imag(observed_data(i,iw)))**2
+!            ----------------------------
+               aval = aval + (real_mft + imag_mft)
 
-        end do
+            end do
 
-        aval = weight(iw) * aval / (amp_obs_real(iw) + amp_obs_imag(iw))
-        write(123,*) "STATION: ", fname(iw)(15:26) , " Misfit: ", aval
+            aval = weight(iw) * aval /
+     1             (amp_obs_real(iw) + amp_obs_imag(iw))
+            write(123,*) "STATION: ", fname(iw)(15:26) , " Misfit: ",
+     1       aval
 
-        if (write_best) then
-          write(111,*) "STATION: ", fname(iw)(15:24) , " Misfit: ", aval
-        end if
+            if (write_best) then
+               write(111,*) "STATION: ", fname(iw)(15:24) ,
+     1          " Misfit: ", aval
+            end if
 
-!		*** ORGINAL LINE ***
-        if (wavetype .eq. "P") then
-          totmisfit_P = totmisfit_P + aval
-          n_P = n_P + 1
-          misfit_P_array(n_P) = aval
+!        *** ORGINAL LINE ***
+            if (wavetype .eq. "P") then
+               totmisfit_P = totmisfit_P + aval
+               n_P = n_P + 1
+               misfit_P_array(n_P) = aval
 
 
-        end if
-        if (wavetype .eq. "S") then
-          totmisfit_S = totmisfit_S + aval
-          n_S = n_S + 1
-          misfit_S_array(n_S) = aval
-        end if
-        if (wavetype .eq. "W") then
-          totmisfit_W = totmisfit_W + aval
-          n_W = n_W + 1
-          misfit_W_array(n_W) = aval
-        end if
-      end do
+            end if
+            if (wavetype .eq. "S") then
+               totmisfit_S = totmisfit_S + aval
+               n_S = n_S + 1
+               misfit_S_array(n_S) = aval
+            end if
+            if (wavetype .eq. "W") then
+               totmisfit_W = totmisfit_W + aval
+               n_W = n_W + 1
+               misfit_W_array(n_W) = aval
+            end if
+         end do
 
-      if (n_P .eq. 0) then
-        median_P = 0.
-      else
-        call median(misfit_P_array,n_P,0,m)
-        median_P = m
-      end if
+         if (n_P .eq. 0) then
+            median_P = 0.
+         else
+            call median(misfit_P_array,n_P,0,m)
+            median_P = m
+         end if
 !---------
-      if (n_S .eq. 0) then
-        median_S = 0.
-      else
-        call median(misfit_S_array,n_S,0,m)
-        median_S = m
-      end if
+         if (n_S .eq. 0) then
+            median_S = 0.
+         else
+            call median(misfit_S_array,n_S,0,m)
+            median_S = m
+         end if
 !---------
-      if (n_W .eq. 0) then
-        median_W = 0
-      else
-        call median(misfit_W_array,n_W,0,m)
-        median_W = m
-      end if
+         if (n_W .eq. 0) then
+            median_W = 0
+         else
+            call median(misfit_W_array,n_W,0,m)
+            median_W = m
+         end if
 !---------
 
 
-      totmisfit = median_P + median_S + median_W
+         totmisfit = median_P + median_S + median_W
 
-      write(*,*) "median P: ", median_P, " median S: ", median_S, 
-     1           " median W: ", median_W
-      write(*,*) "n P: ", n_P, " n S: ", n_S, " n W: ", n_W
+         write(*,*) "median P: ", median_P, " median S: ", median_S,
+     1              " median W: ", median_W
+         write(*,*) "n P: ", n_P, " n S: ", n_S, " n W: ", n_W
 
-      return
+         return
       end
 
 !------------------------------------------------------------------------
       subroutine reverse_string(instring, outstring)
-      character*40 instring, outstring
-      character temp
-      integer i,length
+         character*40 instring, outstring
+         character temp
+         integer i,length
 
 
-      length = len_trim(instring) ! ignores trailing blanks.
+         length = len_trim(instring) ! ignores trailing blanks.
 !                 use len(string) to reverse those as well
 
-      outstring = instring
-      do i = 1, length/2
-        temp = outstring(i:i)
-        outstring(i:i) = outstring(length+1-i:length+1-i)
-        outstring(length+1-i:length+1-i) = temp
-      end do
+         outstring = instring
+         do i = 1, length/2
+            temp = outstring(i:i)
+            outstring(i:i) = outstring(length+1-i:length+1-i)
+            outstring(length+1-i:length+1-i) = temp
+         end do
 
       end subroutine reverse_string
 
@@ -155,15 +158,15 @@
 !------------------------------------------------------------------------
       ! split a string into 2 either side of a delimiter token
       SUBROUTINE split_string(instring, string1, string2, delim)
-      CHARACTER(40) :: instring,delim
-      CHARACTER(40),INTENT(OUT):: string1,string2
-      INTEGER :: index
+         CHARACTER(40) :: instring,delim
+         CHARACTER(40),INTENT(OUT):: string1,string2
+         INTEGER :: index
 
-      instring = adjustl(instring)
+         instring = adjustl(instring)
 
-      index = SCAN(instring, delim)
-      string1 = instring(1:index-1)
-      string2 = instring(index+1:)
+         index = SCAN(instring, delim)
+         string1 = instring(1:index-1)
+         string2 = instring(index+1:)
 
       END SUBROUTINE split_string
 
@@ -223,57 +226,57 @@
 !     UPDATED         --FEBRUARY  1976.
 !
 !---------------------------------------------------------------------
-      DIMENSION X(1)
-      DIMENSION Y(15000)
-      COMMON /BLOCK2/ WS(15000)
-      EQUIVALENCE (Y(1),WS(1))
-      IPR=6
-      IUPPER=15000
+         DIMENSION X(1)
+         DIMENSION Y(15000)
+         COMMON /BLOCK2/ WS(15000)
+         EQUIVALENCE (Y(1),WS(1))
+         IPR=6
+         IUPPER=15000
 !
 !     CHECK THE INPUT ARGUMENTS FOR ERRORS
 !
-      IF(N.LT.1.OR.N.GT.IUPPER)GOTO50
-      IF(N.EQ.1)GOTO55
-      HOLD=X(1)
-      DO60I=2,N
-        IF(X(I).NE.HOLD)GOTO90
-  60  CONTINUE
-      WRITE(IPR, 9)HOLD
-      XMED=X(1)
-      GOTO101
-  50  WRITE(IPR,17)IUPPER
-      WRITE(IPR,47)N
-      RETURN
-  55  WRITE(IPR,18)
-      XMED=X(1)
-      GOTO101
-   90 CONTINUE
-    9 FORMAT("***** NON-FATAL DIAGNOSTIC--THE FIRST  INPUT ARGUMENT", 
-     1"(A VECTOR) TO THE MEDIAN SUBROUTINE HAS ALL ELEMENTS = ",
-     1 E15.8," *****")
-   17 FORMAT("***** FATAL ERROR--THE SECOND INPUT ARGUMENT TO THE",
-     1"MEDIAN SUBROUTINE IS OUTSIDE THE ALLOWABLE", I6,
-     1"INTERVAL *****")
-   18 FORMAT("***** NON-FATAL DIAGNOSTIC--THE SECOND INPUT ARGUMENT TO",
-     1" THE MEDIAN SUBROUTINE HAS THE VALUE 1 *****")
-   47 FORMAT( 35H***** THE VALUE OF THE ARGUMENT IS ,I8   ,6H *****)
+         IF(N.LT.1.OR.N.GT.IUPPER)GOTO50
+         IF(N.EQ.1)GOTO55
+         HOLD=X(1)
+         DO60I=2,N
+            IF(X(I).NE.HOLD)GOTO90
+  60     CONTINUE
+         WRITE(IPR, 9)HOLD
+         XMED=X(1)
+         GOTO101
+  50     WRITE(IPR,17)IUPPER
+         WRITE(IPR,47)N
+         RETURN
+  55     WRITE(IPR,18)
+         XMED=X(1)
+         GOTO101
+   90    CONTINUE
+    9    FORMAT("***** NON-FATAL DIAGNOSTIC--THE FIRST  INPUT ARGUMENT",
+     1   "(A VECTOR) TO THE MEDIAN SUBROUTINE HAS ALL ELEMENTS = ",
+     1    E15.8," *****")
+   17    FORMAT("***** FATAL ERROR--THE SECOND INPUT ARGUMENT TO THE",
+     1   "MEDIAN SUBROUTINE IS OUTSIDE THE ALLOWABLE", I6,
+     1   "INTERVAL *****")
+   18    FORMAT("***** NON-FATAL DIAGNOSTIC--THE SECOND INPUT ",
+     1   "ARGUMENT TO THE MEDIAN SUBROUTINE HAS THE VALUE 1 *****")
+   47    FORMAT( 35H***** THE VALUE OF THE ARGUMENT IS ,I8   ,6H *****)
 !
 !-----START POINT-----------------------------------------------------
 !
-      CALL SORT(X,N,Y)
-      IFLAG=N-(N/2)*2
-      NMID=N/2
-      NMIDP1=NMID+1
-      IF(IFLAG.EQ.0)XMED=(Y(NMID)+Y(NMIDP1))/2.0
-      IF(IFLAG.EQ.1)XMED=Y(NMIDP1)
+         CALL SORT(X,N,Y)
+         IFLAG=N-(N/2)*2
+         NMID=N/2
+         NMIDP1=NMID+1
+         IF(IFLAG.EQ.0)XMED=(Y(NMID)+Y(NMIDP1))/2.0
+         IF(IFLAG.EQ.1)XMED=Y(NMIDP1)
 
-  101 IF(IWRITE.EQ.0)RETURN
-      WRITE(IPR,999)
-      WRITE(IPR,105)N,XMED
-  105 FORMAT(1H ,25HTHE SAMPLE MEDIAN OF THE ,
-     1       I6,17H OBSERVATIONS IS ,E5.8)
-  999 FORMAT(1H )
-      RETURN
+  101    IF(IWRITE.EQ.0)RETURN
+         WRITE(IPR,999)
+         WRITE(IPR,105)N,XMED
+  105    FORMAT(1H ,25HTHE SAMPLE MEDIAN OF THE ,
+     1          I6,17H OBSERVATIONS IS ,E5.8)
+  999    FORMAT(1H )
+         RETURN
       END
 
 
@@ -367,120 +370,115 @@
 !
 !---------------------------------------------------------------------
 !
-      DIMENSION X(1),Y(1)
-      DIMENSION IU(36),IL(36)
+         DIMENSION X(1),Y(1)
+         DIMENSION IU(36),IL(36)
 
-      IPR=6
+         IPR=6
 !
 !     CHECK THE INPUT ARGUMENTS FOR ERRORS
 !
-      IF(N.LT.1)GOTO50
-      IF(N.EQ.1)GOTO55
-      HOLD=X(1)
-      DO60I=2,N
-        IF(X(I).NE.HOLD)GOTO90
-   60 CONTINUE
-      WRITE(IPR, 9)HOLD
-      DO61I=1,N
-        Y(I)=X(I)
-   61 CONTINUE
-      RETURN
-   50 WRITE(IPR,15)
-      WRITE(IPR,47)N
-      RETURN
-   55 WRITE(IPR,18)
-      Y(1)=X(1)
-      RETURN
-   90 CONTINUE
-    9 FORMAT("***** NON-FATAL DIAGNOSTIC--THE FIRST  INPUT ARGUMENT ",
-     1"(A VECTOR) TO THE SORT   SUBROUTINE HAS ALL ELEMENTS = ",
-     1 E15.8," *****")
-   15 FORMAT("***** FATAL ERROR--THE SECOND INPUT ARGUMENT TO THE SORT",
-     1" SUBROUTINE IS NON-POSITIVE *****")
-   18 FORMAT("***** NON-FATAL DIAGNOSTIC--THE SECOND INPUT ARGUMENT ",
-     1"TO THE SORT   SUBROUTINE HAS THE VALUE 1 *****")
-   47 FORMAT("***** THE VALUE OF THE ARGUMENT IS ",I8   ," *****")
+         IF(N.LT.1)GOTO50
+         IF(N.EQ.1)GOTO55
+         HOLD=X(1)
+         DO60I=2,N
+            IF(X(I).NE.HOLD)GOTO90
+   60    CONTINUE
+         WRITE(IPR, 9)HOLD
+         DO61I=1,N
+            Y(I)=X(I)
+   61    CONTINUE
+         RETURN
+   50    WRITE(IPR,15)
+         WRITE(IPR,47)N
+         RETURN
+   55    WRITE(IPR,18)
+         Y(1)=X(1)
+         RETURN
+   90    CONTINUE
+    9    FORMAT("***** NON-FATAL DIAGNOSTIC--THE FIRST  INPUT ARGUMENT ",
+     1   "(A VECTOR) TO THE SORT   SUBROUTINE HAS ALL ELEMENTS = ",
+     1    E15.8," *****")
+   15    FORMAT("***** FATAL ERROR--THE SECOND INPUT ARGUMENT TO THE",
+     1   " SORT SUBROUTINE IS NON-POSITIVE *****")
+   18    FORMAT("***** NON-FATAL DIAGNOSTIC--THE SECOND INPUT ARGUMENT ",
+     1   "TO THE SORT   SUBROUTINE HAS THE VALUE 1 *****")
+   47    FORMAT("***** THE VALUE OF THE ARGUMENT IS ",I8   ," *****")
 !
 !-----START POINT-----------------------------------------------------
 !
 !     COPY THE VECTOR X INTO THE VECTOR Y
-      DO100I=1,N
-        Y(I)=X(I)
-  100 CONTINUE
+         DO100I=1,N
+            Y(I)=X(I)
+  100    CONTINUE
 !
 !     CHECK TO SEE IF THE INPUT VECTOR IS ALREADY SORTED
 !
-      NM1=N-1
-      DO200I=1,NM1
-        IP1=I+1
-        IF(Y(I).LE.Y(IP1))GOTO200
-        GOTO250
-  200 CONTINUE
-      RETURN
-  250 M=1
-      I=1
-      J=N
-  305 IF(I.GE.J)GOTO370
-  310 K=I
-      MID=(I+J)/2
-      AMED=Y(MID)
-      IF(Y(I).LE.AMED)GOTO320
-      Y(MID)=Y(I)
-      Y(I)=AMED
-      AMED=Y(MID)
-  320 L=J
-      IF(Y(J).GE.AMED)GOTO340
-      Y(MID)=Y(J)
-      Y(J)=AMED
-      AMED=Y(MID)
-      IF(Y(I).LE.AMED)GOTO340
-      Y(MID)=Y(I)
-      Y(I)=AMED
-      AMED=Y(MID)
-      GOTO340
-  330 Y(L)=Y(K)
-      Y(K)=TT
-  340 L=L-1
-      IF(Y(L).GT.AMED)GOTO340
-      TT=Y(L)
-  350 K=K+1
-      IF(Y(K).LT.AMED)GOTO350
-      IF(K.LE.L)GOTO330
-      LMI=L-I
-      JMK=J-K
-      IF(LMI.LE.JMK)GOTO360
-      IL(M)=I
-      IU(M)=L
-      I=K
-      M=M+1
-      GOTO380
-  360 IL(M)=K
-      IU(M)=J
-      J=L
-      M=M+1
-      GOTO380
-  370 M=M-1
-      IF(M.EQ.0)RETURN
-      I=IL(M)
-      J=IU(M)
-  380 JMI=J-I
-      IF(JMI.GE.11)GOTO310
-      IF(I.EQ.1)GOTO305
-      I=I-1
-  390 I=I+1
-      IF(I.EQ.J)GOTO370
-      AMED=Y(I+1)
-      IF(Y(I).LE.AMED)GOTO390
-      K=I
-  395 Y(K+1)=Y(K)
-      K=K-1
-      IF(AMED.LT.Y(K))GOTO395
-      Y(K+1)=AMED
-      GOTO390
+         NM1=N-1
+         DO200I=1,NM1
+            IP1=I+1
+            IF(Y(I).LE.Y(IP1))GOTO200
+            GOTO250
+  200    CONTINUE
+         RETURN
+  250    M=1
+         I=1
+         J=N
+  305    IF(I.GE.J)GOTO370
+  310    K=I
+         MID=(I+J)/2
+         AMED=Y(MID)
+         IF(Y(I).LE.AMED)GOTO320
+         Y(MID)=Y(I)
+         Y(I)=AMED
+         AMED=Y(MID)
+  320    L=J
+         IF(Y(J).GE.AMED)GOTO340
+         Y(MID)=Y(J)
+         Y(J)=AMED
+         AMED=Y(MID)
+         IF(Y(I).LE.AMED)GOTO340
+         Y(MID)=Y(I)
+         Y(I)=AMED
+         AMED=Y(MID)
+         GOTO340
+  330    Y(L)=Y(K)
+         Y(K)=TT
+  340    L=L-1
+         IF(Y(L).GT.AMED)GOTO340
+         TT=Y(L)
+  350    K=K+1
+         IF(Y(K).LT.AMED)GOTO350
+         IF(K.LE.L)GOTO330
+         LMI=L-I
+         JMK=J-K
+         IF(LMI.LE.JMK)GOTO360
+         IL(M)=I
+         IU(M)=L
+         I=K
+         M=M+1
+         GOTO380
+  360    IL(M)=K
+         IU(M)=J
+         J=L
+         M=M+1
+         GOTO380
+  370    M=M-1
+         IF(M.EQ.0)RETURN
+         I=IL(M)
+         J=IU(M)
+  380    JMI=J-I
+         IF(JMI.GE.11)GOTO310
+         IF(I.EQ.1)GOTO305
+         I=I-1
+  390    I=I+1
+         IF(I.EQ.J)GOTO370
+         AMED=Y(I+1)
+         IF(Y(I).LE.AMED)GOTO390
+         K=I
+  395    Y(K+1)=Y(K)
+         K=K-1
+         IF(AMED.LT.Y(K))GOTO395
+         Y(K+1)=AMED
+         GOTO390
       END
-
-
-
-
-
 

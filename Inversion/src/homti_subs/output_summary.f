@@ -1,8 +1,8 @@
 !-------------------------------------------------------------------------
 !
-!	Subroutine summary - writes out a summary of the current
-!			     iteration of the Neighbourhood algorithm
-!			     together with the model `rmodel'.
+!    Subroutine summary - writes out a summary of the current
+!                 iteration of the Neighbourhood algorithm
+!                 together with the model `rmodel'.
 !
 !      Modified from original NA package
 !--------------------------------------------------------------------------
