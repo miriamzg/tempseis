@@ -1,4 +1,4 @@
-NA_DIR = /usr/local/opt/Demo-NA# path to NA installation
+NA_DIR ?= ../NA# path to NA installation
 NA_OBJ = \
 		 $(NA_DIR)/src/lib/na.o \
 		 $(NA_DIR)/src/lib/utils.o
