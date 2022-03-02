@@ -1,9 +1,7 @@
-NA_DIR = /usr/local/opt/NA# path to NA installation
+NA_DIR = /usr/local/opt/Demo-NA# path to NA installation
 NA_OBJ = \
 		 $(NA_DIR)/src/lib/na.o \
-		 $(NA_DIR)/src/lib/utils.o \
-		 $(NA_DIR)/src/rfi_subs/lofw.o \
-		 $(NA_DIR)/src/rfi_subs/output_summary.o
+		 $(NA_DIR)/src/lib/utils.o
 include $(NA_DIR)/src/makena.macros
 
 MAIN = homti_na
@@ -14,7 +12,10 @@ SUBS_OBJ = \
          $(SUBS_DIR)/calcmisfit.o \
          $(SUBS_DIR)/display_model.o \
          $(SUBS_DIR)/display_final.o \
-         $(SUBS_DIR)/read_vmodelNA.o
+         $(SUBS_DIR)/read_vmodelNA.o \
+         $(SUBS_DIR)/lofw.o \
+         $(SUBS_DIR)/output_summary.o
+
 
 $(SUBS_OBJ): $(SUBS_DIR)/%.o: $(SUBS_DIR)/%.f
 	$(F77) $(FFLAGS) -c $< -o $@
@@ -32,11 +33,16 @@ else
 	echo "Wrong TYPE ($(TYPE)), must be either 'serial' or 'mpi'."
 endif
 
-all: subs main
+all: na subs main
 
 na:
-	cd $(NA_DIR)/src; make -f Makefile all
+ifeq ($(strip $(TYPE)), serial)
+	cd $(NA_DIR)/src; make -f Makefile na
+else ifeq ($(strip $(TYPE)), mpi)
+	cd $(NA_DIR)/src; make -f Makefile na_mpi
+endif
 
 clean:
 	rm -f ../bin/*
 	rm -f $(SUBS_OBJ)
+	cd $(NA_DIR)/src; make -f Makefile clean
