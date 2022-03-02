@@ -16,6 +16,7 @@ SUBS_OBJ = \
          $(SUBS_DIR)/lofw.o \
          $(SUBS_DIR)/output_summary.o
 
+all: na subs main
 
 $(SUBS_OBJ): $(SUBS_DIR)/%.o: $(SUBS_DIR)/%.f
 	$(F77) $(FFLAGS) -c $< -o $@
@@ -32,8 +33,6 @@ else ifeq ($(strip $(TYPE)), mpi)
 else
 	echo "Wrong TYPE ($(TYPE)), must be either 'serial' or 'mpi'."
 endif
-
-all: na subs main
 
 na:
 ifeq ($(strip $(TYPE)), serial)
