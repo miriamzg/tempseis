@@ -14,14 +14,14 @@ This directory contains the problem-specific source code for higher-order moment
 
 ### Building
 
-In `Inversion/src` there is the main routine `homti_na.f`, some subroutines and a `Makefile`.
-
-To build the code, first build the NA.  Then modify the `NA_DIR` variable in `Inversion/src/Makefile` to point to the root of your NA installation.  This will then use the same compiler options as those used to build the NA. The final step is
+In `Inversion/src` there is the main routine `homti_na.f`, some subroutines and a `Makefile`.  To build the code, run
 
 ```bash
 cd Inversion/src
-make all
+make NA_DIR=</path/to/NA/package> all
 ```
+
+The `all` target will build the necessary parts of the NA and link with the routines here.  The default value of `NA_DIR` is `../NA`.
 
 ## pytempseis
 
