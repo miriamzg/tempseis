@@ -10,7 +10,7 @@ export strike2="352"
 export dip2="74"
 export lat="52.71" 
 export lon="153.43" 
-export path=${HOME}"/Desktop/tempseis" #location of tempseis
+export path=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd ) #location of tempseis
 
 export database=database # location of database relative to path
 
