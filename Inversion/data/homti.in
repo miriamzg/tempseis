@@ -1,0 +1,17 @@
+#
+# Input file for higher order MT inversion specific information
+#
+homti_param                              /* input model   */
+homti_models                             /* output models */
+5					/* nwave */
+MAKZ_R_P
+0.5
+MAKZ_Z_P
+0.5
+MAKZ_R_S
+0.333
+MAKZ_T_S
+0.333
+MAKZ_Z_S
+0.333
+1                                       /* iwrite_models */

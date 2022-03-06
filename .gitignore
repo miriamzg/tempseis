@@ -1,0 +1,8 @@
+*.pyc
+bin
+*.o
+.vscode
+.venv
+database
+!database/readme
+*.egg-info

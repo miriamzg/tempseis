@@ -1,0 +1,40 @@
+eventcode:
+    CMTSOLUTION_201310251710A_GCMT
+database:
+    ../../database  # absolute path or relative to pytempseis/dataprocessing
+real:
+    True  # False for synthetic experiment
+
+periods:
+    Tmin: 17.0  # first filtering
+    Tmax: 300.0
+    Tmin_p: 25.0  # p waves
+    Tmax_p: 60.0
+    Tmin_s: 25.0  # s waves
+    Tmax_s: 100.0
+    Tmin_r: 45.0  # surface waves
+    Tmax_r: 100.0
+
+p_phases:
+    - P
+    - Pdiff
+    - pP
+    - PcP
+    - sP
+    - PKP
+    - PKS
+    - PKKP
+    - PKP
+    - PS
+
+s_phases:
+    - S
+    - Sdiff
+    - pS
+    - SP
+    - sS
+    - PS
+    - SKS
+    - SP
+    - SKP
+
